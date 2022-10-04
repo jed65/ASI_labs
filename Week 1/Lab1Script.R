@@ -29,3 +29,5 @@ plot(dat$age[1:17],log(dat$rate[1:17]),xlab='Age',ylab='log(Death rate)',main='M
 plot(dat$age[18:34],log(dat$rate[18:34]),xlab='Age',ylab='log(Death rate)',main='Female')
 fitted<-lm(log(rate)~age,data=dat[1:17,])
 fitted$coefficients
+
+##### Question 3 #####
