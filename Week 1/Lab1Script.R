@@ -31,3 +31,26 @@ fitted<-lm(log(rate)~age,data=dat[1:17,])
 fitted$coefficients
 
 ##### Question 3 #####
+theta1_vals<-seq(-5,-2,length.out=100)
+theta2_vals<-seq(0.05,0.2,length.out=100)
+nll_grid_theta1_theta2<-outer(X=theta1_vals,
+                              Y=theta2_vals,
+                              FUN=nll,
+                              y=y,
+                              a=a,
+                              k=k
+                              )
+levels_nll<-quantile(x=nll_grid_theta1_theta2,
+                     probs=seq(0,0.3,length.out=10)) # want to minimise! 
+contour(x=theta1_vals,
+        y=theta2_vals,
+        z=nll_grid_theta1_theta2,
+        levels=levels_nll,
+        xlab="Theta_1",
+        ylab="Theta_2",
+        main="Contour plot")
+points(x=fitted$coefficients[1],
+       y=fitted$coefficients[2],
+       cex=1,
+       col="red",
+       pch=16)
