@@ -1,0 +1,497 @@
+---
+title: "MA40198: Lab 1: Line-search optimisation methods"
+author: "Jake Denton, Patrick Fahy and Henry Writer"
+output:
+  html_document:
+    number_sections: no
+    toc: yes
+    toc_float: yes
+    code_download: yes
+    code_folding: hide
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, highlight = TRUE)
+```
+
+
+
+
+
+# Instructions
+
+* This  assignment should be done in groups  according to the coursework group allocation.
+
+ * As indicated in each question, you should complete the answers by filling-out  the 'Lab1.Rmd' file.  You can remove the instructions and introductory sections if you wish.
+ 
+ 
+* The  'Lab1.Rmd' file  can be downloaded by clicking in the **Code download** button at the top right of this page. If the button does not work you can download the 'Lab1.Rmd' file from the Moodle page. You should open this file in RStudio.
+ 
+ *
+ 
+ * I'm going to ask that you trust me with this lab! You may not have learnt about this kind of document yet, called an R Markdown (.Rmd) file- please just go with it! I promise we'll actually explain it later.
+ 
+ 
+
+*  After  completing the answers, each group should convert the 'Lab1.Rmd' file  into an HTML file  by following the instructions in the <a href="#knit-to-html">Knit to html</a> section at the end of this file!
+
+* You maybe asked to install some libraries the first time you try to knit  on your computer! You should do this  (you need to be connected to the internet to do so).
+
+* Each group should submit two files:  the completed 'Lab1.Rmd' file  and the created HTML file (which should be named 'Lab1.html') to the  <a href="https://moodle.bath.ac.uk/mod/assign/view.php?id=1062853">submission point in Moodle</a>
+
+
+
+* This is lab is a **formative assessment** and  you will receive feedback to your submitted work on an informal basis.
+
+
+
+# Introduction
+
+This sheet is about gaining understanding of simple line search  optimisation methods, by coding up  Newton's algorithm, to optimise  relevant statistical functions using real data. 
+
+
+## COVID-19 deaths by sex and age group in England and Wales
+
+
+
+This [dataset](https://people.bath.ac.uk/kai21/ASI/data/COVID19_MARCH_JUNE.csv) contains  the number of age-specific deaths due to COVID-19^[Figures for deaths involving COVID-19 show the number of deaths involving coronavirus (COVID-19), based on any mention of COVID-19 on the death certificate.], split by sex, in England and Wales between 7 March and 26 June 2020.
+
+
+The dataset can be loaded into R as follows
+
+```{r}
+dat<-read.csv("https://people.bath.ac.uk/kai21/COVID19_MARCH_JUNE.csv",header=TRUE)
+```
+
+	
+```{r,echo=TRUE}
+library(knitr)
+kable(dat)
+```
+
+
+The age-specific refers to 5-year age groups starting from 10 years of age , e.g. 10-14, 15-19, ... up until 85-89 with the last age group being 90 years of age or over. For simplicity, each age  group is identified in the dataset by the mid-age point. For example, the age group 20-24 is represented by 22 and the last age group of 90 or over is represented by 92.5.  The dataset also contains the  total population in each age group. This is order to obatin mortality rates per 100,000 people. The records are based on the date each death had occurred rather than when the death was registered. Source: [Office for National Statistics. Deaths registered weekly in England and Wales, provisional: Scheduled update/revision	14 July 2020](https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/deaths/datasets/weeklyprovisionalfiguresondeathsregisteredinenglandandwales/2020)
+
+
+
+ 
+
+ 
+
+### Statistical Modelling 
+
+
+To keep things simple we will focus our interest in modelling the relationship between age and risk of death by COVID-19. For interpretability, we will focus here on  mortality rates per 100,000 population.  That is, for each age group we have
+$$\mbox{death rate per 100,000}=\frac{\# \mbox{covid deaths}}{\# \mbox{population}}\times 100,000$$
+
+ 
+In each age group, the number of observed deaths can be modelled as realisations of a random variable that takes  nonnegative integer values. On the contrary, the observed deaths per 100,000 people, can be considered as a random variable taking values in the rationals. It is important to note that we will consider the total population in each age group as a constant and not as a random variable.
+
+For the age group with mid-point age $a$, let $T_a$ denote the corresponding  total population and let $\mu_{a}$ and $\rho_a$ denote the average number of COVID-19 deaths and the average number of  COVID-19 deaths per 100,000 people. Clearly the following relationship holds:
+$$\mu_a=k_a\,\rho_a\,, \quad \mbox{where}\quad k_a=\frac{T_a}{100,000}$$
+
+
+ Let $Y_a$ be the number of deaths due to COVID-19 in the age-group with mid-point $a$. We will assume $Y_a$ follows a Poisson distribution. The corresponding  probability mass function of $Y_a$ is given by:
+
+$$f(y|\mu_{a})=P[Y_{a}=y|\mu_a]=\exp(-\mu_{a})\frac{[\mu_{a}]^y}{y!}\,,\qquad y=0,1,2,\ldots$$
+
+It has been postulated that COVID-19 death rates per 100,000 increase exponentially with age so we use a simple exponential model for the corresponding average mortality rate, that is
+
+\begin{equation}
+\rho_{a}=\exp(\theta_1+\theta_2\,a) \,,\quad \mbox{for all }\,a>0
+\end{equation}
+
+
+### Loglikelihood function {#sec-optimisation-sect-likelihood-covid-data} 
+
+We will assume that the number of deaths in different  age groups are independent random variables, that is,  $Y_{a_1}$ and $Y_{a_2}$,  when $a_1\neq a_2$, are independent random variables. This implies that the joint probability density function of the random vector  $\boldsymbol{Y}^T=(Y_{a_1},Y_{a_2},\ldots,Y_{a_n})$
+ is simply the product of the corresponding marginal densities, that is
+$$\prod_{i=1}^n f(y_i|\mu_{a_i})=\prod_{i=1}^n \exp(-\mu_{a_i})\frac{[\mu_{a_i}]^{y_i}}{y_i!}\,,\quad \mbox{where}\quad \mu_{a_i}=k_{a_i}\exp(\theta_1+\theta_2\,a_i)$$
+In our case there are 17 different age-groups so $n=17$. The only unknown parameters in the joint density above are those in the vector $\boldsymbol{\theta}^T=(\theta_1,\theta_2)$. 
+
+
+
+
+
+
+The loglikelihood function of $\boldsymbol{\theta}$ is given by the natural logarithm of the above joint density viewed as a function of $\theta_1$ and $\theta_1$ and considering the values of $y_1,y_2,\ldots,y_{17}$ as fixed at the observed values given in the dataset.  Since all the optimisation methods  reviewed in this unit are designed for minimisation, we define the negative log-likelihood  as our objective function:
+
+\begin{align*}
+\ell(\boldsymbol{\theta})&=-\sum_{i=1}^n \log f(y_i|\mu_{a_i})\\
+&=\sum_{i=1}^n \left\{k_{a_i}\exp(\theta_1+\theta_2\,a_i)-y_i(\theta_1+\theta_2\,a_i+\log k_{a_i})+\log y_i!\right\}
+\end{align*}
+
+
+### Interpretation of the parameters in the model {#sec-interpretation}
+
+For a fixed age $a$, we will refer to *the risk of dying from COVID-19* as the average number of deaths per 100,000 which has been modelled as $\exp(\theta_1+\theta_2\,a)$.
+
+The quantity $\exp(\theta_1)$ can be interpreted as the risk of dying from COVID-19 for an individual of age zero which can be interpreted as a newborn. While this is sensible, we do not have information in  the above dataset from individuals aged less than  10 years old so  we will not insist in this interpretation when we obtain estimates of $\theta_1$ at the risk of extrapolation of the available data.
+
+
+For the parameter $\theta_2$ we have the following interpretation. The relative risk (the ratio of risks) of  an individual of age $a_1$ with respect to an individual of age $a_2$ is simply $\exp(\theta_2(a_1-a_2))$ so that if $a_1-a_2=1$ then $\exp(\theta_2)$ has the interpretation of being the relative risk between individuals whose age difference is one year. Put in a different way, the risk of dying from COVID-19 increases by $100\times (\exp(\theta_2)-1)\%$  every year. For example, if $\exp(\theta_2)=1.5$ then the annual increase in risk is 50\%. 
+
+
+Since the dataset is split by sex, the total number of deaths in each age group, can be computed as follows:
+
+```{r}
+y_male   <- subset(dat$deaths_COVID,dat$sex=="male")
+y_female <- subset(dat$deaths_COVID,dat$sex=="female")
+y        <- y_male+y_female
+y
+```
+
+
+## Question 1
+
+Consider the following function that calculates the negative loglikelihood for each value of the parameter vector $\boldsymbol{\theta}=(\theta_1,\theta_2)^T$. 
+
+
+```{r}
+nll<-function(theta1,theta2,y,a,k){
+  
+  lin_pred     <- theta1+theta2*a
+  
+  mu           <- k*exp(lin_pred)
+  
+  sum_log_dens <- sum(dpois(x    = y,
+                            lambda = mu,
+                            log  = TRUE))
+  
+  -sum_log_dens
+}
+```
+
+Show an example of why the above function is not vectorised with respect to the arguments $\theta_1$ and $\theta_2$ and change it to another function which is now vectorised with the same name and also keeping the same names for its arguments.
+
+## Solution to Question 1 {-}
+
+```{r}
+a<-dat$age[1:17] # get vector of age midpoints
+k<-(dat$population[1:17]+dat$population[18:34])/100000 # sizes
+theta1=seq(-5,-2,length.out=34) # theta values to test
+theta2=seq(0.05,0.2,length.out=34)
+nll(theta1,theta2,y,a,k) 
+```
+The problem here is as follows: we passed 34 values of theta 1 and theta 2 respectively, so we expect to get 34 values back from the function. However, since the data vector y has 17 entries, it is recycled by dpois() - this sums the negative log of the Poisson pmf for many different values of the mean. We want to fix one value of the mean at a time and get the negative log-likelihood for each, and if the function was vectorised and gave us this we would have a vector output with 34 entries instead of 1.
+```{r}
+nll<-function(theta1,theta2,y,a,k){
+  
+  lin_pred     <- theta1+theta2*a
+  
+  mu           <- k*exp(lin_pred)
+  
+  sum_log_dens <- sum(dpois(x    = y,
+                            lambda = mu,
+                            log  = TRUE))
+  
+  -sum_log_dens
+}
+nll<-Vectorize(FUN=nll,vectorize.args = c("theta1","theta2")) # Vectorize
+nll(theta1,theta2,y,a,k) # Make sure that it works
+```
+We now get 34 elements in the output which is what we expect!
+
+
+
+## Question 2
+
+Plot the data as a scatterplot of the natural log of the death rate (per 100k) vs age, for both men and women. Based on the data, what can you say about the relationship between  mortlity rate and age for the two groups? Use such relationship to compute (for each group, eg men and women) starting values for an iterative algorithm to minimise the negative loglikelihood function.
+
+## Solution to Question 2 {-}
+
+```{r}
+dat$rate<-dat$deaths_COVID/(dat$population/100000) # Add new variable
+par(mfrow=c(1,2))
+plot(dat$age[1:17],log(dat$rate[1:17]),xlab='Age',ylab='log(Death rate)',main='Male')
+plot(dat$age[18:34],log(dat$rate[18:34]),xlab='Age',ylab='log(Death rate)',main='Female')
+```
+The death rate does increase with age at an exponential rate as shown by the linear relationship between the logarithm of the rate and age in the plot (which comes from the data). This provides evidence to suggest that the model proposed for the death rate per 100000 is sensible. Since log(rate)=theta1+theta2*age, a good guess from the data for the starting values can be found by fitting a linear model between the variables in the plots above and considering the intercept and slope. Both the plots are quite similar in shape so using either of the genders to do this should work fine.
+```{r}
+fitted<-lm(log(rate)~age,data=dat[1:17,])
+fitted$coefficients
+```
+So from this output, we can see that sensible initial values are (theta1,theta2)=(-3.0754504,0.1195576).
+
+
+## Question 3
+
+Plot the contours of the negative log likelihood function in the ranges $\theta_1\in (-5,-2)$ and $\theta_2\in(0.05,0.2)$ for both men and women. Also plot the points corresponding to the starting values computed above. Are these good approximations to the minima?
+
+
+
+## Solution to Question 3 {-}
+
+```{r Q3_1}
+theta1_vals<-seq(-5,-2,length.out=100)
+theta2_vals<-seq(0.05,0.2,length.out=100)
+nll_grid_theta1_theta2<-outer(X=theta1_vals,
+                              Y=theta2_vals,
+                              FUN=nll,
+                              y=y,
+                              a=a,
+                              k=k
+                              )
+levels_nll<-quantile(x=nll_grid_theta1_theta2,
+                     probs=seq(0,0.3,length.out=10)) # want to minimise! 
+contour(x=theta1_vals,
+        y=theta2_vals,
+        z=nll_grid_theta1_theta2,
+        levels=levels_nll,
+        xlab="Theta_1",
+        ylab="Theta_2",
+        main="Contour plot")
+points(x=fitted$coefficients[1],
+       y=fitted$coefficients[2],
+       cex=1,
+       col="red",
+       pch=16)
+```
+The plot shows 10 contours from the lowest 30% of values for the negative log-likelihood. The initial guess we had is highlighted in red, lying near to contours valued at 4771.017. This is quite low compared to the surrounding contours and shows that the initial guess gives a negative log-likelihood in the bottom 30% of values, so this is a sensible starting value for an iterative algorithm.
+
+## Question 4
+
+For both men and women, implement   Newton's algorithm  to find the maximum likelihood estimator $\hat{\boldsymbol{\theta}}$. Use simple backtracking and an absolute tolerance of $\epsilon_a=10^{-6}$. Are these estimates  similar for  men and women ? In each case, report:
+
+* the final iteration point, 
+
+* the total number of iterations  
+
+* the number of simple backtrackings in each iteration
+
+* the number of times the Hessian is not positive definite
+
+* Compute now the estimates using a stopping criterion based on the relative gradient with a relative tolerance of $\epsilon_r=10^{-6}$. What are the differences with the previous estimates in terms values, number of iterations and number of backtrackings?
+
+## Solution to Question 4 {-}
+
+```{r}
+
+func <- function(theta,y,a,k){
+  
+  lin_pred     <- theta[1]+theta[2]*a
+  
+  mu           <- k*exp(lin_pred)
+  
+  sum_log_dens <- sum(dpois(x = y,
+                            lambda = mu,
+                            log  = TRUE))
+  -sum_log_dens
+}
+
+grad <- function(theta,y,a,k){
+  lin_pred     <- theta[1]+theta[2]*a
+  mu           <- k*exp(lin_pred)
+  
+  grad_1 <- sum(mu-y)
+  grad_2 <- sum(a*(mu-y))
+  c(grad_1,grad_2)
+}
+
+hess<-function(theta,y,a,k){
+  lin_pred     <- theta[1]+theta[2]*a
+  mu           <- k*exp(lin_pred)
+  
+  hess_11 <- sum(mu)
+  hess_12 <- sum(a*mu)
+  hess_22 <- sum(a^2*mu)
+  
+  out <- matrix(c(hess_11,hess_12,hess_12,hess_22),
+                nrow = 2,
+                ncol = 2,
+                byrow = TRUE)
+  out
+}
+
+
+hess_inv <- function(theta,y,a,k){
+  lin_pred     <- theta[1]+theta[2]*a
+  mu           <- k*exp(lin_pred)
+  
+  det = sum(mu)*sum(a^2*mu)-sum(a*mu)^2
+    
+  hess_11 <- sum(a^2*mu)/det
+  hess_12 <- -sum(a*mu)/det
+  hess_22 <- sum(mu)/det
+  
+  out <- matrix(c(hess_11,hess_12,hess_12,hess_22),
+                nrow = 2,
+                ncol = 2,
+                byrow = TRUE)
+  out
+}
+
+
+
+
+
+
+data_male <- dplyr::filter(dat, sex == "male")
+data_female <- dplyr::filter(dat, sex == "female")
+
+y_male <- data_male$deaths_COVID
+a_male <- data_male$age
+k_male <- data_male$population/100000
+
+y_female <- data_female$deaths_COVID
+a_female <- data_female$age
+k_female <- data_female$population/100000
+
+theta_k = c(-3.0754504, 0.1195576)
+tol = 10e-6
+
+
+euler_func <- function(theta_k, tol, func, grad, hess, hess_inv, y, a, k_in){
+    
+    hess_non_pos_def_count <- 0 # the number of times the Hessian is not positive definite
+    n_iterations <- 0 # the total number of iterations
+    n_backtrackings <- c() # the number of simple backtrackings in each iteration
+    k <- 0
+    
+    func_old <- func(theta_k, y, a, k_in)
+    grad_k <- grad(theta_k, y, a, k_in)
+    hess_k <- hess(theta_k, y, a, k_in)
+    hess_inv_k <- hess_inv(theta_k, y, a, k_in)
+      
+    
+    while (norm(grad_k, type="2") > tol){
+        current_n_backtrackings <- 0
+        n_iterations <- n_iterations + 1
+        dir <- -hess_inv_k%*%grad_k
+        alpha_k <- 1
+        func_new <- func(theta_k + alpha_k*dir, y, a, k_in)
+        
+        if (is.infinite(func_new)){
+          func_new = func_old
+        }
+        
+        while (func_new >= func_old) {
+          current_n_backtrackings <- current_n_backtrackings+1
+          alpha_k <- alpha_k/2
+          func_new <- func(theta_k + alpha_k*dir, y, a, k_in)
+          if (is.infinite(func_new)){
+            func_new = func_old
+          }
+        }
+        theta_k <- theta_k + alpha_k*dir
+        k <- k+1
+        func_old <- func(theta_k, y, a, k_in)
+        grad_k <- grad(theta_k, y, a, k_in)
+        hess_k <- hess(theta_k, y, a, k_in)
+        hess_inv_k <- hess_inv(theta_k, y, a, k_in)
+        
+        if (!(matrixcalc::is.positive.definite(hess_k))){
+          hess_non_pos_def_count <- hess_non_pos_def_count+1
+        }
+        n_backtrackings[length(n_backtrackings)+1] <- current_n_backtrackings
+        
+    }
+
+    c(theta_k, hess_non_pos_def_count, n_iterations, n_backtrackings)
+}
+
+output_men <- euler_func(theta_k, tol, func, grad, hess, hess_inv, y_male, a_male, k_male)
+
+output_women <- euler_func(theta_k, tol, func, grad, hess, hess_inv, y_female, a_female, k_female)
+
+theta_hat_men <- c(output_men[1:2])
+hess_non_pos_def_count_men <- output_men[3]
+n_iterations_men <- output_men[4]
+n_backtrackings_men <- output_men[5:length(output_men)]
+
+theta_hat_women <- c(output_women[1:2])
+hess_non_pos_def_count_women <- output_women[3]
+n_iterations_women <- output_women[4]
+n_backtrackings_women <- output_women[5:length(output_men)]
+
+paste("MEN: Theta hat:", theta_hat_men[1], theta_hat_men[2], ",  Number of non positive definite Hessians:", hess_non_pos_def_count_men, ",  Number of Iterations:", n_iterations_men, ",  Number of backtrackings for each iteration:", n_backtrackings_men)
+
+## not sure how to not duplicate paste with n_backtrackings_men
+
+paste("WOMEN: Theta hat:", theta_hat_women[1], theta_hat_women[2], ",  Number of non positive definite Hessians:", hess_non_pos_def_count_women, ",  Number of Iterations:", n_iterations_women)
+
+
+
+```
+
+## Question 5
+
+In the scatterplot from Question 2, for both men and women, add the log of the fitted mean curve which is given by:
+$$\log \exp(\hat{\theta_1}+\hat{\theta}_2\,a)=\hat{\theta_1}+\hat{\theta}_2\,a$$
+so is a straight line. Comment on the fit of this line to the data points in each sex group.
+
+
+## Solution to Question 5 {-}
+
+```{r }
+theta_1_hat_men <- theta_hat_men[1]
+theta_2_hat_men <- theta_hat_men[2]
+theta_1_hat_women <- theta_hat_women[1]
+theta_2_hat_women <- theta_hat_women[2]
+  
+func_men <- function(a){
+  theta_1_hat_men+theta_2_hat_men*a
+}
+  
+func_women <- function(a){
+  theta_1_hat_women+theta_2_hat_women*a
+}
+
+dat$rate<-dat$deaths_COVID/(dat$population/100000) # Add new variable
+par(mfrow=c(1,2))
+x_range <- seq(min(dat$age), max(dat$age), length.out = 1000)
+
+plot(dat$age[1:17],log(dat$rate[1:17]),xlab='Age',ylab='log(Death rate)',main='Male')
+lines(x_range, func_men(x_range))
+
+plot(dat$age[18:34],log(dat$rate[18:34]),xlab='Age',ylab='log(Death rate)',main='Female')
+lines(x_range, func_women(x_range))
+
+```
+
+## Question 6
+
+In the previous question we have considered men and women separately . Consider now the following model that integrates the effect of sex:
+
+$$\mbox{death rate per 100k}=\exp(\theta_1+\theta_2\, age+\theta_3\,\delta_{male})$$
+where $\delta_{male}=1$ if male and $\delta_{male}=0$ if female.
+
+This model assumes that the age coefficients are the same for both men and women and the intercepts are different.
+
+Using  Newton's algorithm:
+
+* Find a simple starting value $\boldsymbol{\theta}_0$ using the linear form of the model (e.g. use least squares) 
+
+* Find the maximum likelihood estimator of the unknown parameter $\boldsymbol{\theta}^T=(\theta_1,\theta_2,\theta_3)$ 
+
+
+## Solution to Question 6 {-}
+
+```{r }
+# your code here
+```
+
+## Question 7
+
+On average, men experienced how much additional risk compared with women the same age?
+
+The COVID-19 mortality rates:  
+
+* were about how much higher for each year older? 
+
+* double for every  $X$  years of extra age. How much is $X$?
+
+## Solution to Question 7 {-}
+
+```{r }
+# your code here
+```
+
+## Knit to html
+
+
+![](https://people.bath.ac.uk/kai21/ASI/img/knit-html-screenshot.png)	
+
+
