@@ -276,7 +276,31 @@ For both men and women, implement   Newton's algorithm  to find the maximum like
 ## Solution to Question 4 {-}
 
 ```{r}
-# your code here
+#A function to compute the grad of l(theta)
+grad_nll<-function(theta1,theta2,y,a,k){
+  lin_pred     <- theta1+theta2*a
+  mu           <- k*exp(lin_pred)
+  
+  grad_1 <- sum(mu-y)
+  grad_2 <- sum((mu-y)*a)
+  -c(grad_1,grad_2gra)
+}
+
+#A function to compute the hess of l(theta)
+hess_nll<-function(theta1,theta2,y,a,k){
+  lin_pred     <- theta1+theta2*a
+  mu           <- k*exp(lin_pred)
+  
+  hess_11 <- sum(mu)
+  hess_12 <- sum(a*mu)
+  hess_22 <- sum(a^2*mu)
+  
+  out <- matrix(c(hess_11,hess_12,hess_12,hess_22),
+                nrow = 2,
+                ncol = 2,
+                byrow = TRUEhes)
+  out
+}
 ```
 
 ## Question 5
