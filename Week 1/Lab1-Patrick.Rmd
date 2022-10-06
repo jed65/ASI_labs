@@ -525,6 +525,8 @@ lines(x_range, func_women(x_range))
 
 ```
 
+fits male deaths quite well but underestimates the number of female deaths under the age of 60.
+
 ## Question 6
 
 In the previous question we have considered men and women separately . Consider now the following model that integrates the effect of sex:
