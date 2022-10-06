@@ -533,9 +533,12 @@ In the previous question we have considered men and women separately . Consider 
 
 $$\mbox{death rate per 100k}=\exp(\theta_1+\theta_2\, age+\theta_3\,\delta_{male})$$
 where $\delta_{male}=1$ if male and $\delta_{male}=0$ if female.
+```{r}
+
+```
 
 This model assumes that the age coefficients are the same for both men and women and the intercepts are different.
-
+in
 Using  Newton's algorithm:
 
 * Find a simple starting value $\boldsymbol{\theta}_0$ using the linear form of the model (e.g. use least squares) 
@@ -546,7 +549,64 @@ Using  Newton's algorithm:
 ## Solution to Question 6 {-}
 
 ```{r }
-# your code here
+dat$sex_logic<-c(rep(1,17),rep(0,17)) #converting sex to a logical operator
+dat$rate_log<-log(dat$rate) #taking the log of the death rate
+
+multi.fit = lm(rate_log~age+sex_logic, data=dat)
+summary(multi.fit)
+
+#theta_0 = -3.540362 theta_1=0.118476 theta_2=0.521177
+
+
+
+func <- function(theta,y,a,k,delta){
+  
+  lin_pred     <- theta[1]+theta[2]*a+theta[3]*delta
+  
+  mu           <- k*exp(lin_pred)
+  
+  sum_log_dens <- sum(dpois(x = y,
+                            lambda = mu,
+                            log  = TRUE))
+  -sum_log_dens
+}
+
+grad <- function(theta,y,a,k,delta){
+  lin_pred     <- theta[1]+theta[2]*a+theta[3]*delta
+  mu           <- k*exp(lin_pred)
+  
+  grad_1 <- sum(mu-y)
+  grad_2 <- sum(a*(mu-y))
+  grad_3<- sum(delta*(mu-y))
+  c(grad_1,grad_2,grad_3)
+}
+
+hess<-function(theta,y,a,k,delta){
+  lin_pred     <- theta[1]+theta[2]*a+theta[3]*delta
+  mu           <- k*exp(lin_pred)
+  
+  hess_11 <- sum(mu)
+  hess_12 <- sum(a*mu)
+  hess_13 <- sum(delta*mu)
+  
+  hess_22 <- sum(a^2*mu)
+  hess_23 <- sum(a*delta*mu)
+  
+  hess_33 <- sum(delta^2*mu)
+  
+  out <- matrix(c(hess_11,hess_12,hess_13,hess_12,hess_22,hess_23,hess_13,hess_23,hess_33),
+                nrow = 3,
+                ncol = 3,
+                byrow = TRUE)
+  out
+}
+
+
+hess_inv <- function(mat){
+  inv(mat)
+  
+}
+
 ```
 
 ## Question 7
