@@ -414,6 +414,80 @@ paste("WOMEN: Theta hat:", theta_hat_women[1], theta_hat_women[2], ",  Number of
 
 
 
+
+
+euler_func_rel_tol <- function(theta_k, tol, func, grad, hess, hess_inv, y, a, k_in){
+    
+    hess_non_pos_def_count <- 0 # the number of times the Hessian is not positive definite
+    n_iterations <- 0 # the total number of iterations
+    n_backtrackings <- c() # the number of simple backtrackings in each iteration
+    k <- 0
+    
+    func_old <- func(theta_k, y, a, k_in)
+    func_new <- func_old
+    grad_k <- grad(theta_k, y, a, k_in)
+    hess_k <- hess(theta_k, y, a, k_in)
+    hess_inv_k <- hess_inv(theta_k, y, a, k_in)
+      
+    
+    while (norm((grad_k*theta_k), type="2") > tol*func_new){
+        current_n_backtrackings <- 0
+        n_iterations <- n_iterations + 1
+        dir <- -hess_inv_k%*%grad_k
+        alpha_k <- 1
+        func_new <- func(theta_k + alpha_k*dir, y, a, k_in)
+        
+        if (is.infinite(func_new)){
+          func_new = func_old
+        }
+        
+        while (func_new >= func_old) {
+          current_n_backtrackings <- current_n_backtrackings+1
+          alpha_k <- alpha_k/2
+          func_new <- func(theta_k + alpha_k*dir, y, a, k_in)
+          if (is.infinite(func_new)){
+            func_new = func_old
+          }
+        }
+        theta_k <- theta_k + alpha_k*dir
+        k <- k+1
+        func_old <- func(theta_k, y, a, k_in)
+        grad_k <- grad(theta_k, y, a, k_in)
+        hess_k <- hess(theta_k, y, a, k_in)
+        hess_inv_k <- hess_inv(theta_k, y, a, k_in)
+        
+        if (!(matrixcalc::is.positive.definite(hess_k))){
+          hess_non_pos_def_count <- hess_non_pos_def_count+1
+        }
+        n_backtrackings[length(n_backtrackings)+1] <- current_n_backtrackings
+        
+    }
+
+    c(theta_k, hess_non_pos_def_count, n_iterations, n_backtrackings)
+}
+
+
+output_men_rel_tol <- euler_func_rel_tol(theta_k, tol, func, grad, hess, hess_inv, y_male, a_male, k_male)
+
+output_women_rel_tol <- euler_func_rel_tol(theta_k, tol, func, grad, hess, hess_inv, y_female, a_female, k_female)
+
+theta_hat_men_rel_tol <- c(output_men_rel_tol[1:2])
+hess_non_pos_def_count_men_rel_tol <- output_men_rel_tol[3]
+n_iterations_men_rel_tol <- output_men_rel_tol[4]
+n_backtrackings_men_rel_tol <- output_men_rel_tol[5:length(output_men_rel_tol)]
+
+theta_hat_women_rel_tol <- c(output_women_rel_tol[1:2])
+hess_non_pos_def_count_women_rel_tol <- output_women_rel_tol[3]
+n_iterations_women_rel_tol <- output_women_rel_tol[4]
+n_backtrackings_women_rel_tol <- output_women_rel_tol[5:length(output_men)]
+
+paste("Relative Tolerance... MEN: Theta hat:", theta_hat_men_rel_tol[1], theta_hat_men_rel_tol[2], ",  Number of non positive definite Hessians:", hess_non_pos_def_count_men_rel_tol, ",  Number of Iterations:", n_iterations_men_rel_tol, ",  Number of backtrackings for each iteration:", n_backtrackings_men_rel_tol)
+
+## not sure how to not duplicate paste with n_backtrackings_men
+
+paste("Relative Tolerance... WOMEN: Theta hat:", theta_hat_women_rel_tol[1], theta_hat_women_rel_tol[2], ",  Number of non positive definite Hessians:", hess_non_pos_def_count_women_rel_tol, ",  Number of Iterations:", n_iterations_women_rel_tol)
+
+
 ```
 
 ## Question 5
