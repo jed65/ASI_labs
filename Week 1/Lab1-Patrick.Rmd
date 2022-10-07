@@ -685,9 +685,9 @@ The COVID-19 mortality rates:
 ## Solution to Question 7 {-}
 
 ```{r }
-cat(exp(output[3]),':',1,'Ratio of death between men and women','\n')
-cat(exp(output[2]),'Increase in rate of death for each year older','\n')
-cat(log(2)/output[2],'number of years for the mortality rate to double','\n')
+cat(exp(output[3]),'Increase in death rate per 100k for males','\n')
+cat(exp(output[2]),'Increase in death rate per 100k for each year older','\n')
+cat(log(2)/output[2],'number of years for death rate per 100k to double','\n')
 
     
 
