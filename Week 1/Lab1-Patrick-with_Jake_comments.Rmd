@@ -69,7 +69,6 @@ dat<-read.csv("https://people.bath.ac.uk/kai21/COVID19_MARCH_JUNE.csv",header=TR
 ```{r,echo=TRUE}
 library(knitr)
 kable(dat)
-
 ```
 
 
@@ -139,11 +138,8 @@ Since the dataset is split by sex, the total number of deaths in each age group,
 
 ```{r}
 y_male   <- subset(dat$deaths_COVID,dat$sex=="male")
-
 y_female <- subset(dat$deaths_COVID,dat$sex=="female")
-
 y        <- y_male+y_female
-
 y
 ```
 
@@ -154,7 +150,6 @@ Consider the following function that calculates the negative loglikelihood for e
 
 
 ```{r}
-
 nll<-function(theta1,theta2,y,a,k){
   
   lin_pred     <- theta1+theta2*a
@@ -167,7 +162,6 @@ nll<-function(theta1,theta2,y,a,k){
   
   -sum_log_dens
 }
-
 ```
 
 Show an example of why the above function is not vectorised with respect to the arguments $\theta_1$ and $\theta_2$ and change it to another function which is now vectorised with the same name and also keeping the same names for its arguments.
@@ -183,7 +177,6 @@ nll(theta1,theta2,y,a,k)
 ```
 The problem here is as follows: we passed 34 values of theta 1 and theta 2 respectively, so we expect to get 34 values back from the function. However, since the data vector y has 17 entries, it is recycled by dpois() - this sums the negative log of the Poisson pmf for many different values of the mean. We want to fix one value of the mean at a time and get the negative log-likelihood for each, and if the function was vectorised and gave us this we would have a vector output with 34 entries instead of 1.
 ```{r}
-
 nll<-function(theta1,theta2,y,a,k){
   
   lin_pred     <- theta1+theta2*a
@@ -211,6 +204,16 @@ Plot the data as a scatterplot of the natural log of the death rate (per 100k) v
 
 ```{r}
 dat$rate<-dat$deaths_COVID/(dat$population/100000) # Add new variable
+<<<<<<< HEAD
+par(mfrow=c(1,2)) # Split figure into 2
+plot(dat$age[1:17],log(dat$rate[1:17]),xlab='Age',ylab='log(Death rate)',main='Male') # Plot male data
+plot(dat$age[18:34],log(dat$rate[18:34]),xlab='Age',ylab='log(Death rate)',main='Female') # Plot female data
+```
+The death rate does increase with age at an exponential rate as shown by the linear relationship between the logarithm of the rate and age in the plot (which comes from the data). This provides evidence to suggest that the model proposed for the death rate per 100000 is sensible. Since log(rate)=theta1+theta2*age, a good guess from the data for the starting values can be found by fitting a linear model between the variables in the plots above and considering the intercept and slope. Both the plots are quite similar in shape so using either of the genders to do this should work fine.
+```{r}
+fitted<-lm(log(rate)~age,data=dat[1:17,]) # Fit linear model to male data
+fitted$coefficients # Get the values of the intercept/slope
+=======
 par(mfrow=c(1,2))
 plot(dat$age[1:17],log(dat$rate[1:17]),xlab='Age',ylab='log(Death rate)',main='Male')
 plot(dat$age[18:34],log(dat$rate[18:34]),xlab='Age',ylab='log(Death rate)',main='Female')
@@ -219,6 +222,7 @@ The death rate does increase with age at an exponential rate as shown by the lin
 ```{r}
 fitted<-lm(log(rate)~age,data=dat[1:17,])
 fitted$coefficients
+>>>>>>> 1a74b8092115bf0608a820da21fcdec71dffd131
 ```
 So from this output, we can see that sensible initial values are (theta1,theta2)=(-3.0754504,0.1195576).
 
@@ -232,7 +236,11 @@ Plot the contours of the negative log likelihood function in the ranges $\theta_
 ## Solution to Question 3 {-}
 
 ```{r Q3_1}
+<<<<<<< HEAD
+theta1_vals<-seq(-5,-2,length.out=100) # Make some grids for the contour
+=======
 theta1_vals<-seq(-5,-2,length.out=100)
+>>>>>>> 1a74b8092115bf0608a820da21fcdec71dffd131
 theta2_vals<-seq(0.05,0.2,length.out=100)
 nll_grid_theta1_theta2<-outer(X=theta1_vals,
                               Y=theta2_vals,
@@ -242,7 +250,11 @@ nll_grid_theta1_theta2<-outer(X=theta1_vals,
                               k=k
                               )
 levels_nll<-quantile(x=nll_grid_theta1_theta2,
+<<<<<<< HEAD
+                     probs=seq(0,0.3,length.out=10)) # Want to minimise! 
+=======
                      probs=seq(0,0.3,length.out=10)) # want to minimise! 
+>>>>>>> 1a74b8092115bf0608a820da21fcdec71dffd131
 contour(x=theta1_vals,
         y=theta2_vals,
         z=nll_grid_theta1_theta2,
@@ -254,8 +266,11 @@ points(x=fitted$coefficients[1],
        y=fitted$coefficients[2],
        cex=1,
        col="red",
+<<<<<<< HEAD
+       pch=16) # Fit our point that we got from lm()
+=======
        pch=16)
-
+>>>>>>> 1a74b8092115bf0608a820da21fcdec71dffd131
 ```
 The plot shows 10 contours from the lowest 30% of values for the negative log-likelihood. The initial guess we had is highlighted in red, lying near to contours valued at 4771.017. This is quite low compared to the surrounding contours and shows that the initial guess gives a negative log-likelihood in the bottom 30% of values, so this is a sensible starting value for an iterative algorithm.
 
@@ -276,25 +291,30 @@ For both men and women, implement   Newton's algorithm  to find the maximum like
 ## Solution to Question 4 {-}
 
 ```{r}
-<<<<<<< HEAD
-#A function to compute the grad of l(theta)
-=======
->>>>>>> main
-grad_nll<-function(theta1,theta2,y,a,k){
-  lin_pred     <- theta1+theta2*a
+
+func <- function(theta,y,a,k){
+  
+  lin_pred     <- theta[1]+theta[2]*a
+  
+  mu           <- k*exp(lin_pred)
+  
+  sum_log_dens <- sum(dpois(x = y,
+                            lambda = mu,
+                            log  = TRUE))
+  -sum_log_dens
+}
+
+grad <- function(theta,y,a,k){
+  lin_pred     <- theta[1]+theta[2]*a
   mu           <- k*exp(lin_pred)
   
   grad_1 <- sum(mu-y)
-  grad_2 <- sum((mu-y)*a)
-  -c(grad_1,grad_2gra)
+  grad_2 <- sum(a*(mu-y))
+  c(grad_1,grad_2)
 }
 
-<<<<<<< HEAD
-#A function to compute the hess of l(theta)
-=======
->>>>>>> main
-hess_nll<-function(theta1,theta2,y,a,k){
-  lin_pred     <- theta1+theta2*a
+hess<-function(theta,y,a,k){
+  lin_pred     <- theta[1]+theta[2]*a
   mu           <- k*exp(lin_pred)
   
   hess_11 <- sum(mu)
@@ -304,9 +324,193 @@ hess_nll<-function(theta1,theta2,y,a,k){
   out <- matrix(c(hess_11,hess_12,hess_12,hess_22),
                 nrow = 2,
                 ncol = 2,
-                byrow = TRUEhes)
+                byrow = TRUE)
   out
 }
+
+
+hess_inv <- function(theta,y,a,k){
+  lin_pred     <- theta[1]+theta[2]*a
+  mu           <- k*exp(lin_pred)
+  
+  det = sum(mu)*sum(a^2*mu)-sum(a*mu)^2
+    
+  hess_11 <- sum(a^2*mu)/det
+  hess_12 <- -sum(a*mu)/det
+  hess_22 <- sum(mu)/det
+  
+  out <- matrix(c(hess_11,hess_12,hess_12,hess_22),
+                nrow = 2,
+                ncol = 2,
+                byrow = TRUE)
+  out
+}
+
+
+
+
+
+
+data_male <- dplyr::filter(dat, sex == "male")
+data_female <- dplyr::filter(dat, sex == "female")
+
+y_male <- data_male$deaths_COVID
+a_male <- data_male$age
+k_male <- data_male$population/100000
+
+y_female <- data_female$deaths_COVID
+a_female <- data_female$age
+k_female <- data_female$population/100000
+
+theta_k = c(-3.0754504, 0.1195576)
+tol = 10e-6
+
+
+euler_func <- function(theta_k, tol, func, grad, hess, hess_inv, y, a, k_in){
+    
+    hess_non_pos_def_count <- 0 # the number of times the Hessian is not positive definite
+    n_iterations <- 0 # the total number of iterations
+    n_backtrackings <- c() # the number of simple backtrackings in each iteration
+    k <- 0
+    
+    func_old <- func(theta_k, y, a, k_in)
+    grad_k <- grad(theta_k, y, a, k_in)
+    hess_k <- hess(theta_k, y, a, k_in)
+    hess_inv_k <- hess_inv(theta_k, y, a, k_in)
+      
+    
+    while (norm(grad_k, type="2") > tol){
+        current_n_backtrackings <- 0
+        n_iterations <- n_iterations + 1
+        dir <- -hess_inv_k%*%grad_k
+        alpha_k <- 1
+        func_new <- func(theta_k + alpha_k*dir, y, a, k_in)
+        
+        if (is.infinite(func_new)){
+          func_new = func_old
+        }
+        
+        while (func_new >= func_old) {
+          current_n_backtrackings <- current_n_backtrackings+1
+          alpha_k <- alpha_k/2
+          func_new <- func(theta_k + alpha_k*dir, y, a, k_in)
+          if (is.infinite(func_new)){
+            func_new = func_old
+          }
+        }
+        theta_k <- theta_k + alpha_k*dir
+        k <- k+1
+        func_old <- func(theta_k, y, a, k_in)
+        grad_k <- grad(theta_k, y, a, k_in)
+        hess_k <- hess(theta_k, y, a, k_in)
+        hess_inv_k <- hess_inv(theta_k, y, a, k_in)
+        
+        if (!(matrixcalc::is.positive.definite(hess_k))){
+          hess_non_pos_def_count <- hess_non_pos_def_count+1
+        }
+        n_backtrackings[length(n_backtrackings)+1] <- current_n_backtrackings
+        
+    }
+
+    c(theta_k, hess_non_pos_def_count, n_iterations, n_backtrackings)
+}
+
+output_men <- euler_func(theta_k, tol, func, grad, hess, hess_inv, y_male, a_male, k_male)
+
+output_women <- euler_func(theta_k, tol, func, grad, hess, hess_inv, y_female, a_female, k_female)
+
+theta_hat_men <- c(output_men[1:2])
+hess_non_pos_def_count_men <- output_men[3]
+n_iterations_men <- output_men[4]
+n_backtrackings_men <- output_men[5:length(output_men)]
+
+theta_hat_women <- c(output_women[1:2])
+hess_non_pos_def_count_women <- output_women[3]
+n_iterations_women <- output_women[4]
+n_backtrackings_women <- output_women[5:length(output_men)]
+
+paste("MEN: Theta hat:", theta_hat_men[1], theta_hat_men[2], ",  Number of non positive definite Hessians:", hess_non_pos_def_count_men, ",  Number of Iterations:", n_iterations_men, ",  Number of backtrackings for each iteration:", n_backtrackings_men)
+
+## not sure how to not duplicate paste with n_backtrackings_men
+
+paste("WOMEN: Theta hat:", theta_hat_women[1], theta_hat_women[2], ",  Number of non positive definite Hessians:", hess_non_pos_def_count_women, ",  Number of Iterations:", n_iterations_women)
+
+
+
+
+
+euler_func_rel_tol <- function(theta_k, tol, func, grad, hess, hess_inv, y, a, k_in){
+    
+    hess_non_pos_def_count <- 0 # the number of times the Hessian is not positive definite
+    n_iterations <- 0 # the total number of iterations
+    n_backtrackings <- c() # the number of simple backtrackings in each iteration
+    k <- 0
+    
+    func_old <- func(theta_k, y, a, k_in)
+    func_new <- func_old
+    grad_k <- grad(theta_k, y, a, k_in)
+    hess_k <- hess(theta_k, y, a, k_in)
+    hess_inv_k <- hess_inv(theta_k, y, a, k_in)
+      
+    
+    while (norm((grad_k*theta_k), type="2") > tol*func_new){
+        current_n_backtrackings <- 0
+        n_iterations <- n_iterations + 1
+        dir <- -hess_inv_k%*%grad_k
+        alpha_k <- 1
+        func_new <- func(theta_k + alpha_k*dir, y, a, k_in)
+        
+        if (is.infinite(func_new)){
+          func_new = func_old
+        }
+        
+        while (func_new >= func_old) {
+          current_n_backtrackings <- current_n_backtrackings+1
+          alpha_k <- alpha_k/2
+          func_new <- func(theta_k + alpha_k*dir, y, a, k_in)
+          if (is.infinite(func_new)){
+            func_new = func_old
+          }
+        }
+        theta_k <- theta_k + alpha_k*dir
+        k <- k+1
+        func_old <- func(theta_k, y, a, k_in)
+        grad_k <- grad(theta_k, y, a, k_in)
+        hess_k <- hess(theta_k, y, a, k_in)
+        hess_inv_k <- hess_inv(theta_k, y, a, k_in)
+        
+        if (!(matrixcalc::is.positive.definite(hess_k))){
+          hess_non_pos_def_count <- hess_non_pos_def_count+1
+        }
+        n_backtrackings[length(n_backtrackings)+1] <- current_n_backtrackings
+        
+    }
+
+    c(theta_k, hess_non_pos_def_count, n_iterations, n_backtrackings)
+}
+
+
+output_men_rel_tol <- euler_func_rel_tol(theta_k, tol, func, grad, hess, hess_inv, y_male, a_male, k_male)
+
+output_women_rel_tol <- euler_func_rel_tol(theta_k, tol, func, grad, hess, hess_inv, y_female, a_female, k_female)
+
+theta_hat_men_rel_tol <- c(output_men_rel_tol[1:2])
+hess_non_pos_def_count_men_rel_tol <- output_men_rel_tol[3]
+n_iterations_men_rel_tol <- output_men_rel_tol[4]
+n_backtrackings_men_rel_tol <- output_men_rel_tol[5:length(output_men_rel_tol)]
+
+theta_hat_women_rel_tol <- c(output_women_rel_tol[1:2])
+hess_non_pos_def_count_women_rel_tol <- output_women_rel_tol[3]
+n_iterations_women_rel_tol <- output_women_rel_tol[4]
+n_backtrackings_women_rel_tol <- output_women_rel_tol[5:length(output_men)]
+
+paste("Relative Tolerance... MEN: Theta hat:", theta_hat_men_rel_tol[1], theta_hat_men_rel_tol[2], ",  Number of non positive definite Hessians:", hess_non_pos_def_count_men_rel_tol, ",  Number of Iterations:", n_iterations_men_rel_tol, ",  Number of backtrackings for each iteration:", n_backtrackings_men_rel_tol)
+
+## not sure how to not duplicate paste with n_backtrackings_men
+
+paste("Relative Tolerance... WOMEN: Theta hat:", theta_hat_women_rel_tol[1], theta_hat_women_rel_tol[2], ",  Number of non positive definite Hessians:", hess_non_pos_def_count_women_rel_tol, ",  Number of Iterations:", n_iterations_women_rel_tol)
+
+
 ```
 
 ## Question 5
@@ -319,9 +523,32 @@ so is a straight line. Comment on the fit of this line to the data points in eac
 ## Solution to Question 5 {-}
 
 ```{r }
-# your code here
+theta_1_hat_men <- theta_hat_men[1]
+theta_2_hat_men <- theta_hat_men[2]
+theta_1_hat_women <- theta_hat_women[1]
+theta_2_hat_women <- theta_hat_women[2]
+  
+func_men <- function(a){
+  theta_1_hat_men+theta_2_hat_men*a
+}
+  
+func_women <- function(a){
+  theta_1_hat_women+theta_2_hat_women*a
+}
+
+dat$rate<-dat$deaths_COVID/(dat$population/100000) # Add new variable
+par(mfrow=c(1,2))
+x_range <- seq(min(dat$age), max(dat$age), length.out = 1000)
+
+plot(dat$age[1:17],log(dat$rate[1:17]),xlab='Age',ylab='log(Death rate)',main='Male')
+lines(x_range, func_men(x_range))
+
+plot(dat$age[18:34],log(dat$rate[18:34]),xlab='Age',ylab='log(Death rate)',main='Female')
+lines(x_range, func_women(x_range))
 
 ```
+
+fits male deaths quite well but underestimates the number of female deaths under the age of 60.
 
 ## Question 6
 
@@ -329,9 +556,12 @@ In the previous question we have considered men and women separately . Consider 
 
 $$\mbox{death rate per 100k}=\exp(\theta_1+\theta_2\, age+\theta_3\,\delta_{male})$$
 where $\delta_{male}=1$ if male and $\delta_{male}=0$ if female.
+```{r}
+
+```
 
 This model assumes that the age coefficients are the same for both men and women and the intercepts are different.
-
+in
 Using  Newton's algorithm:
 
 * Find a simple starting value $\boldsymbol{\theta}_0$ using the linear form of the model (e.g. use least squares) 
@@ -342,8 +572,127 @@ Using  Newton's algorithm:
 ## Solution to Question 6 {-}
 
 ```{r }
-# your code here
+dat$sex_logic<-c(rep(1,17),rep(0,17)) #converting sex to a logical operator
+dat$rate_log<-log(dat$rate) #taking the log of the death rate
 
+multi.fit = lm(rate_log~age+sex_logic, data=dat)
+summary(multi.fit)
+
+#theta_0 = -3.540362 theta_1=0.118476 theta_2=0.521177
+
+
+
+func <- function(theta,y,a,k,delta){
+  
+  lin_pred     <- theta[1]+theta[2]*a+theta[3]*delta
+  
+  mu           <- k*exp(lin_pred)
+  
+  sum_log_dens <- sum(dpois(x = y,
+                            lambda = mu,
+                            log  = TRUE))
+  -sum_log_dens
+}
+
+grad <- function(theta,y,a,k,delta){
+  lin_pred     <- theta[1]+theta[2]*a+theta[3]*delta
+  mu           <- k*exp(lin_pred)
+  
+  grad_1 <- sum(mu-y)
+  grad_2 <- sum(a*(mu-y))
+  grad_3<- sum(delta*(mu-y))
+  c(grad_1,grad_2,grad_3)
+}
+
+hess<-function(theta,y,a,k,delta){
+  lin_pred     <- theta[1]+theta[2]*a+theta[3]*delta
+  mu           <- k*exp(lin_pred)
+  
+  hess_11 <- sum(mu)
+  hess_12 <- sum(a*mu)
+  hess_13 <- sum(delta*mu)
+  
+  hess_22 <- sum(a^2*mu)
+  hess_23 <- sum(a*delta*mu)
+  
+  hess_33 <- sum(delta^2*mu)
+  
+  out <- matrix(c(hess_11,hess_12,hess_13,hess_12,hess_22,hess_23,hess_13,hess_23,hess_33),
+                nrow = 3,
+                ncol = 3,
+                byrow = TRUE)
+  out
+}
+
+
+
+hess_inv <- function(mat){
+  solve(mat)
+  
+}
+
+theta_k = c(-3.540,0.118,0.521)
+tol = 10e-6
+
+y = dat$deaths_COVID
+a = dat$age
+delta = dat$sex_logic
+k_in = dat$population/100000
+
+
+euler_func_new <- function(theta_k, tol, func, grad, hess, hess_inv, y, a, delta, k_in){
+    
+    hess_non_pos_def_count <- 0 # the number of times the Hessian is not positive definite
+    n_iterations <- 0 # the total number of iterations
+    n_backtrackings <- c() # the number of simple backtrackings in each iteration
+    k <- 0
+    
+    func_old <- func(theta_k, y, a, k_in, delta)
+    grad_k <- grad(theta_k, y, a, k_in, delta)
+    hess_k <- hess(theta_k, y, a, k_in, delta)
+    hess_inv_k <- hess_inv(hess_k)
+      
+    
+    while (norm(grad_k, type="2") > tol){
+        current_n_backtrackings <- 0
+        n_iterations <- n_iterations + 1
+        dir <- -hess_inv_k%*%grad_k
+        alpha_k <- 1
+        func_new <- func(theta_k + alpha_k*dir, y, a, k_in, delta)
+        
+        if (is.infinite(func_new)){
+          func_new = func_old
+        }
+        
+        while (func_new >= func_old) {
+          current_n_backtrackings <- current_n_backtrackings+1
+          alpha_k <- alpha_k/2
+          func_new <- func(theta_k + alpha_k*dir, y, a, k_in, delta)
+          if (is.infinite(func_new)){
+            func_new = func_old
+          }
+        }
+        theta_k <- theta_k + alpha_k*dir
+        k <- k+1
+        func_old <- func(theta_k, y, a, k_in, delta)
+        grad_k <- grad(theta_k, y, a, k_in, delta)
+        hess_k <- hess(theta_k, y, a, k_in, delta)
+        hess_inv_k <- hess_inv(hess_k)
+        
+        if (!(matrixcalc::is.positive.definite(hess_k))){
+          hess_non_pos_def_count <- hess_non_pos_def_count+1
+        }
+        n_backtrackings[length(n_backtrackings)+1] <- current_n_backtrackings
+        
+    }
+
+    c(theta_k, hess_non_pos_def_count, n_iterations, n_backtrackings)
+}
+
+output <- euler_func_new(theta_k, tol, func, grad, hess, hess_inv, y, a, delta, k_in)
+
+output[1:3]
+output[5]
 ```
 
 ## Question 7
@@ -359,7 +708,11 @@ The COVID-19 mortality rates:
 ## Solution to Question 7 {-}
 
 ```{r }
-# your code here
+cat(exp(output[3]),'Increase in death rate per 100k for males','\n')
+cat(exp(output[2]),'Increase in death rate per 100k for each year older','\n')
+cat(log(2)/output[2],'number of years for death rate per 100k to double','\n')
+
+    
 
 ```
 
@@ -367,7 +720,5 @@ The COVID-19 mortality rates:
 
 
 ![](https://people.bath.ac.uk/kai21/ASI/img/knit-html-screenshot.png)	
-
-
 
 
