@@ -602,11 +602,74 @@ hess<-function(theta,y,a,k,delta){
 }
 
 
+
 hess_inv <- function(mat){
-  inv(mat)
+  solve(mat)
   
 }
 
+theta_k = c(-3.540,0.118,0.521)
+tol = 10e-6
+
+y = dat$deaths_COVID
+a = dat$age
+delta = dat$sex_logic
+k_in = dat$population/100000
+
+
+euler_func_new <- function(theta_k, tol, func, grad, hess, hess_inv, y, a, delta, k_in){
+    
+    hess_non_pos_def_count <- 0 # the number of times the Hessian is not positive definite
+    n_iterations <- 0 # the total number of iterations
+    n_backtrackings <- c() # the number of simple backtrackings in each iteration
+    k <- 0
+    
+    func_old <- func(theta_k, y, a, k_in, delta)
+    grad_k <- grad(theta_k, y, a, k_in, delta)
+    hess_k <- hess(theta_k, y, a, k_in, delta)
+    hess_inv_k <- hess_inv(hess_k)
+      
+    
+    while (norm(grad_k, type="2") > tol){
+        current_n_backtrackings <- 0
+        n_iterations <- n_iterations + 1
+        dir <- -hess_inv_k%*%grad_k
+        alpha_k <- 1
+        func_new <- func(theta_k + alpha_k*dir, y, a, k_in, delta)
+        
+        if (is.infinite(func_new)){
+          func_new = func_old
+        }
+        
+        while (func_new >= func_old) {
+          current_n_backtrackings <- current_n_backtrackings+1
+          alpha_k <- alpha_k/2
+          func_new <- func(theta_k + alpha_k*dir, y, a, k_in, delta)
+          if (is.infinite(func_new)){
+            func_new = func_old
+          }
+        }
+        theta_k <- theta_k + alpha_k*dir
+        k <- k+1
+        func_old <- func(theta_k, y, a, k_in, delta)
+        grad_k <- grad(theta_k, y, a, k_in, delta)
+        hess_k <- hess(theta_k, y, a, k_in, delta)
+        hess_inv_k <- hess_inv(hess_k)
+        
+        if (!(matrixcalc::is.positive.definite(hess_k))){
+          hess_non_pos_def_count <- hess_non_pos_def_count+1
+        }
+        n_backtrackings[length(n_backtrackings)+1] <- current_n_backtrackings
+        
+    }
+
+    c(theta_k, hess_non_pos_def_count, n_iterations, n_backtrackings)
+}
+
+output <- euler_func_new(theta_k, tol, func, grad, hess, hess_inv, y, a, delta, k_in)
+
+output[1:3]
+output[5]
 ```
 
 ## Question 7
@@ -622,7 +685,12 @@ The COVID-19 mortality rates:
 ## Solution to Question 7 {-}
 
 ```{r }
-# your code here
+cat(exp(output[3]),':',1,'Ratio of death between men and women','\n')
+cat(exp(output[2]),'Increase in rate of death for each year older','\n')
+cat(log(2)/output[2],'number of years for the mortality rate to double','\n')
+
+    
+
 ```
 
 ## Knit to html
