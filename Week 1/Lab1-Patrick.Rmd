@@ -204,6 +204,7 @@ Plot the data as a scatterplot of the natural log of the death rate (per 100k) v
 
 ```{r}
 dat$rate<-dat$deaths_COVID/(dat$population/100000) # Add new variable
+<<<<<<< HEAD
 par(mfrow=c(1,2)) # Split figure into 2
 plot(dat$age[1:17],log(dat$rate[1:17]),xlab='Age',ylab='log(Death rate)',main='Male') # Plot male data
 plot(dat$age[18:34],log(dat$rate[18:34]),xlab='Age',ylab='log(Death rate)',main='Female') # Plot female data
@@ -212,6 +213,16 @@ The death rate does increase with age at an exponential rate as shown by the lin
 ```{r}
 fitted<-lm(log(rate)~age,data=dat[1:17,]) # Fit linear model to male data
 fitted$coefficients # Get the values of the intercept/slope
+=======
+par(mfrow=c(1,2))
+plot(dat$age[1:17],log(dat$rate[1:17]),xlab='Age',ylab='log(Death rate)',main='Male')
+plot(dat$age[18:34],log(dat$rate[18:34]),xlab='Age',ylab='log(Death rate)',main='Female')
+```
+The death rate does increase with age at an exponential rate as shown by the linear relationship between the logarithm of the rate and age in the plot (which comes from the data). This provides evidence to suggest that the model proposed for the death rate per 100000 is sensible. Since log(rate)=theta1+theta2*age, a good guess from the data for the starting values can be found by fitting a linear model between the variables in the plots above and considering the intercept and slope. Both the plots are quite similar in shape so using either of the genders to do this should work fine.
+```{r}
+fitted<-lm(log(rate)~age,data=dat[1:17,])
+fitted$coefficients
+>>>>>>> 1a74b8092115bf0608a820da21fcdec71dffd131
 ```
 So from this output, we can see that sensible initial values are (theta1,theta2)=(-3.0754504,0.1195576).
 
@@ -225,7 +236,11 @@ Plot the contours of the negative log likelihood function in the ranges $\theta_
 ## Solution to Question 3 {-}
 
 ```{r Q3_1}
+<<<<<<< HEAD
 theta1_vals<-seq(-5,-2,length.out=100) # Make some grids for the contour
+=======
+theta1_vals<-seq(-5,-2,length.out=100)
+>>>>>>> 1a74b8092115bf0608a820da21fcdec71dffd131
 theta2_vals<-seq(0.05,0.2,length.out=100)
 nll_grid_theta1_theta2<-outer(X=theta1_vals,
                               Y=theta2_vals,
@@ -235,7 +250,11 @@ nll_grid_theta1_theta2<-outer(X=theta1_vals,
                               k=k
                               )
 levels_nll<-quantile(x=nll_grid_theta1_theta2,
+<<<<<<< HEAD
                      probs=seq(0,0.3,length.out=10)) # Want to minimise! 
+=======
+                     probs=seq(0,0.3,length.out=10)) # want to minimise! 
+>>>>>>> 1a74b8092115bf0608a820da21fcdec71dffd131
 contour(x=theta1_vals,
         y=theta2_vals,
         z=nll_grid_theta1_theta2,
@@ -247,7 +266,11 @@ points(x=fitted$coefficients[1],
        y=fitted$coefficients[2],
        cex=1,
        col="red",
+<<<<<<< HEAD
        pch=16) # Fit our point that we got from lm()
+=======
+       pch=16)
+>>>>>>> 1a74b8092115bf0608a820da21fcdec71dffd131
 ```
 The plot shows 10 contours from the lowest 30% of values for the negative log-likelihood. The initial guess we had is highlighted in red, lying near to contours valued at 4771.017. This is quite low compared to the surrounding contours and shows that the initial guess gives a negative log-likelihood in the bottom 30% of values, so this is a sensible starting value for an iterative algorithm.
 
