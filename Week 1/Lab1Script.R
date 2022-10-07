@@ -54,3 +54,5 @@ points(x=fitted$coefficients[1],
        cex=1,
        col="red",
        pch=16)
+message("Hello!")
+cat("Hello to you!")
