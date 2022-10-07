@@ -558,7 +558,7 @@ summary(multi.fit)
 #theta_0 = -3.540362 theta_1=0.118476 theta_2=0.521177
 
 
-
+#Function that implements the new model
 func <- function(theta,y,a,k,delta){
   
   lin_pred     <- theta[1]+theta[2]*a+theta[3]*delta
@@ -571,6 +571,7 @@ func <- function(theta,y,a,k,delta){
   -sum_log_dens
 }
 
+#Computes the grad
 grad <- function(theta,y,a,k,delta){
   lin_pred     <- theta[1]+theta[2]*a+theta[3]*delta
   mu           <- k*exp(lin_pred)
@@ -581,6 +582,7 @@ grad <- function(theta,y,a,k,delta){
   c(grad_1,grad_2,grad_3)
 }
 
+#Function computes the Hessian
 hess<-function(theta,y,a,k,delta){
   lin_pred     <- theta[1]+theta[2]*a+theta[3]*delta
   mu           <- k*exp(lin_pred)
@@ -602,21 +604,23 @@ hess<-function(theta,y,a,k,delta){
 }
 
 
-
+#Inverts the matrix mat
 hess_inv <- function(mat){
   solve(mat)
-  
 }
 
+#Initial guess for theta taken from ealier
 theta_k = c(-3.540,0.118,0.521)
 tol = 10e-6
+cat('intial theta =',theta_k ,'\n')
 
+#Grabbing the input data form the dataset
 y = dat$deaths_COVID
 a = dat$age
 delta = dat$sex_logic
 k_in = dat$population/100000
 
-
+#Function that runs the euler's method on the new model.
 euler_func_new <- function(theta_k, tol, func, grad, hess, hess_inv, y, a, delta, k_in){
     
     hess_non_pos_def_count <- 0 # the number of times the Hessian is not positive definite
@@ -668,8 +672,8 @@ euler_func_new <- function(theta_k, tol, func, grad, hess, hess_inv, y, a, delta
 
 output <- euler_func_new(theta_k, tol, func, grad, hess, hess_inv, y, a, delta, k_in)
 
-output[1:3]
-output[5]
+cat('theta=',output[1],output[2],output[3],'\n')
+cat('number of iteriations=',output[5],'\n')
 ```
 
 ## Question 7
@@ -685,6 +689,7 @@ The COVID-19 mortality rates:
 ## Solution to Question 7 {-}
 
 ```{r }
+#Generating the values the required for Q7
 cat(exp(output[3]),'Increase in death rate per 100k for males','\n')
 cat(exp(output[2]),'Increase in death rate per 100k for each year older','\n')
 cat(log(2)/output[2],'number of years for death rate per 100k to double','\n')
