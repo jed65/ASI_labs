@@ -130,4 +130,12 @@ run_BFGS<-BFGS(theta_0=initial_guess,func=nll,grad=nll_grad,B=diag(3),y=y,a=a,k_
 run_BFGS # Display all the information
 theta_final<-as.numeric(run_BFGS$theta) # This is the final value of theta from the algorithm
 
+#Plot of the errors
+errors<-run_BFGS$iterates-t(matrix(rep(theta_final,9),nrow=3,ncol=9))
+sum_of_error_rows<-matrix(0,nrow=9,ncol=1)
+for (i in 1:9){
+  sum_of_error_rows[i]<-sqrt(sum(errors[i,]^2))
+}
+plot(x=1:9,sum_of_error_rows)
+
 
