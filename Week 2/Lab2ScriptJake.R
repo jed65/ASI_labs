@@ -1,88 +1,3 @@
----
-title: 'MA40198: Lab 2: Quasi-Newton methods'
-author: "Your name here"
-output:
-  html_document:
-    number_sections: no
-    toc: yes
-    toc_float: yes
-    code_download: yes
-    code_folding: hide
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, highlight = TRUE)
-```
-
-
-
-
-
-# Instructions
-
-* This  assignment should be done in groups  according to the coursework group allocation.
-
- * As indicated in each question, you should complete the answers by filling-out  the 'Lab2.Rmd' file.  You can remove the instructions and introductory sections if you wish.
- 
- 
-* The  'Lab2.Rmd' file  can be downloaded by clicking in the **Code download** button at the top right of this page. If the button does not work you can download the 'Lab2.Rmd' file from the Moodle page. You should open this file in RStudio.
- 
-
-*  After  completing the answers, each group should convert the 'Lab2.Rmd' file  into an HTML file  by following the instructions in the <a href="#knit-to-html">Knit to html</a> section at the end of this file!
-
-
-* Each group should submit two files:  the completed 'Lab2.Rmd' file  and the created HTML file (which should be named 'Lab2.html') to the  <a href="https://moodle.bath.ac.uk/mod/assign/view.php?id=1160443">submission point in Moodle</a>
-
-
-
-* This is lab is a **formative assessment** and  you will receive feedback to your submitted work on an informal basis.
- 
-
-## Introduction
-
-This lab is about gaining a solid understanding of quasi-Newton methods   such as the BFGS  algorithm to maximise loglikelihoods. 
-
-
-
-
-## Question 
-
-
-
-For the COVID-19 mortality [dataset](https://people.bath.ac.uk/kai21/ASI/data/COVID19_MARCH_JUNE.csv) used in [Question sheet 1](https://moodle.bath.ac.uk/pluginfile.php/2120917/mod_resource/content/1/Lab1.html), consider again the model for the mean number of deaths, that integrates the effect of sex:
-
-$$\mbox{mortality rate per 100k}=\exp(\theta_1+\theta_2\, age+\theta_3\,\delta_{male})$$
-where $\delta_{male}=1$ if male and $\delta_{male}=0$ if female.
-
-Remember that you can load the dataset as follows:
-```{r,echo=TRUE}
-deaths<-read.csv("https://people.bath.ac.uk/kai21/ASI/data/COVID19_MARCH_JUNE.csv",header =TRUE)
-```
-
-
-* Compute a starting value $\boldsymbol{\theta}_0$ exploiting the log-linear form of the mean model.
-
-* Use the BFGS algorithm to compute the maximum likelihood estimator of the unknown parameter $\boldsymbol{\theta}^T=(\theta_1,\theta_2,\theta_3)$ given the data. Did you observed any substantial difference in the iterations compared to those obtained using the  Newton algorithm?
-
-
-## Solution to Question  {-}
-
-```{r Q1, eval = FALSE}
-# Chunk to compute starting value
-deaths<-read.csv("https://people.bath.ac.uk/kai21/ASI/data/COVID19_MARCH_JUNE.csv",header =TRUE)
-
-deaths$rate<-deaths$deaths_COVID/(deaths$population/100000) #make variable for rate
-deaths$sex_logic<-c(rep(1,17),rep(0,17)) #converting sex to a logical operator
-deaths$rate_log<-log(deaths$rate) #taking the log of the death rate
-
-multi.fit = lm(rate_log~age+sex_logic, data=deaths) #fit linear model
-initial_guess = multi.fit$coefficients #extract starting theta
-names(initial_guess) <- NULL #remove names, gives vector theta_0
-cat('The starting value from fitting linear model is:', initial_guess, '\n')
-```
-
-```{r}
-# Code chunk which designs and implements BFGS algorithm
 nll <- function(theta,y,a,k,delta){ # Function to compute neg. log-likelihood
   
   lin_pred     <- theta[1]+theta[2]*a+theta[3]*delta
@@ -105,6 +20,18 @@ nll_grad <- function(theta,y,a,k,delta){ # Function to compute gradient
   c(grad_1,grad_2,grad_3)
 }
 
+deaths<-read.csv("https://people.bath.ac.uk/kai21/ASI/data/COVID19_MARCH_JUNE.csv",header =TRUE)
+
+deaths$rate<-deaths$deaths_COVID/(deaths$population/100000) #make variable for rate
+deaths$sex_logic<-c(rep(1,17),rep(0,17)) #converting sex to a logical operator
+deaths$rate_log<-log(deaths$rate) #taking the log of the death rate
+
+multi.fit = lm(rate_log~age+sex_logic, data=deaths) #fit linear model
+initial_guess = multi.fit$coefficients #extract starting theta
+names(initial_guess) <- NULL #remove names, gives vector theta_0
+cat('The starting value from fitting linear model is:', initial_guess, '\n')
+
+# Now to implement the BFGS algorithm
 BFGS<-function(theta_0,func,grad,B,
                control=list(maxit=1000,abstol=1e-6,c1=1e-4,c2=0.9),
                y,a,k_in,delta){
@@ -191,7 +118,6 @@ BFGS<-function(theta_0,func,grad,B,
               no_backtracks=k_backtracking[1:k]))
 }
 
-# Implement the algorithm for our dataset
 # Set input arguments from dataset
 y = deaths$deaths_COVID
 a = deaths$age
@@ -203,13 +129,5 @@ k = deaths$population/100000
 run_BFGS<-BFGS(theta_0=initial_guess,func=nll,grad=nll_grad,B=diag(3),y=y,a=a,k_in=k,delta=delta)
 run_BFGS # Display all the information
 theta_final<-as.numeric(run_BFGS$theta) # This is the final value of theta from the algorithm
-```
-
-## Knit to html
-
-![](https://people.bath.ac.uk/kai21/ASI/img/knit-html-screenshot.png)	
-
-
-
 
 
