@@ -14,58 +14,41 @@ output:
 knitr::opts_chunk$set(echo = TRUE, highlight = TRUE)
 ```
 
-
-
-
-
 # Instructions
 
-* This  assignment should be done in groups  according to the coursework group allocation.
+-   This assignment should be done in groups according to the coursework group allocation.
 
- * As indicated in each question, you should complete the answers by filling-out  the 'Lab2.Rmd' file.  You can remove the instructions and introductory sections if you wish.
- 
- 
-* The  'Lab2.Rmd' file  can be downloaded by clicking in the **Code download** button at the top right of this page. If the button does not work you can download the 'Lab2.Rmd' file from the Moodle page. You should open this file in RStudio.
- 
+-   As indicated in each question, you should complete the answers by filling-out the 'Lab2.Rmd' file. You can remove the instructions and introductory sections if you wish.
 
-*  After  completing the answers, each group should convert the 'Lab2.Rmd' file  into an HTML file  by following the instructions in the <a href="#knit-to-html">Knit to html</a> section at the end of this file!
+-   The 'Lab2.Rmd' file can be downloaded by clicking in the **Code download** button at the top right of this page. If the button does not work you can download the 'Lab2.Rmd' file from the Moodle page. You should open this file in RStudio.
 
+-   After completing the answers, each group should convert the 'Lab2.Rmd' file into an HTML file by following the instructions in the <a href="#knit-to-html">Knit to html</a> section at the end of this file!
 
-* Each group should submit two files:  the completed 'Lab2.Rmd' file  and the created HTML file (which should be named 'Lab2.html') to the  <a href="https://moodle.bath.ac.uk/mod/assign/view.php?id=1160443">submission point in Moodle</a>
+-   Each group should submit two files: the completed 'Lab2.Rmd' file and the created HTML file (which should be named 'Lab2.html') to the <a href="https://moodle.bath.ac.uk/mod/assign/view.php?id=1160443">submission point in Moodle</a>
 
-
-
-* This is lab is a **formative assessment** and  you will receive feedback to your submitted work on an informal basis.
- 
+-   This is lab is a **formative assessment** and you will receive feedback to your submitted work on an informal basis.
 
 ## Introduction
 
-This lab is about gaining a solid understanding of quasi-Newton methods   such as the BFGS  algorithm to maximise loglikelihoods. 
+This lab is about gaining a solid understanding of quasi-Newton methods such as the BFGS algorithm to maximise loglikelihoods.
 
-
-
-
-## Question 
-
-
+## Question
 
 For the COVID-19 mortality [dataset](https://people.bath.ac.uk/kai21/ASI/data/COVID19_MARCH_JUNE.csv) used in [Question sheet 1](https://moodle.bath.ac.uk/pluginfile.php/2120917/mod_resource/content/1/Lab1.html), consider again the model for the mean number of deaths, that integrates the effect of sex:
 
-$$\mbox{mortality rate per 100k}=\exp(\theta_1+\theta_2\, age+\theta_3\,\delta_{male})$$
-where $\delta_{male}=1$ if male and $\delta_{male}=0$ if female.
+$$\mbox{mortality rate per 100k}=\exp(\theta_1+\theta_2\, age+\theta_3\,\delta_{male})$$ where $\delta_{male}=1$ if male and $\delta_{male}=0$ if female.
 
 Remember that you can load the dataset as follows:
+
 ```{r,echo=TRUE}
 deaths<-read.csv("https://people.bath.ac.uk/kai21/ASI/data/COVID19_MARCH_JUNE.csv",header =TRUE)
 ```
 
+-   Compute a starting value $\boldsymbol{\theta}_0$ exploiting the log-linear form of the mean model.
 
-* Compute a starting value $\boldsymbol{\theta}_0$ exploiting the log-linear form of the mean model.
+-   Use the BFGS algorithm to compute the maximum likelihood estimator of the unknown parameter $\boldsymbol{\theta}^T=(\theta_1,\theta_2,\theta_3)$ given the data. Did you observed any substantial difference in the iterations compared to those obtained using the Newton algorithm?
 
-* Use the BFGS algorithm to compute the maximum likelihood estimator of the unknown parameter $\boldsymbol{\theta}^T=(\theta_1,\theta_2,\theta_3)$ given the data. Did you observed any substantial difference in the iterations compared to those obtained using the  Newton algorithm?
-
-
-## Solution to Question  {-}
+## Solution to Question {.unnumbered}
 
 ```{r Q1, eval = FALSE}
 # Chunk to compute starting value
@@ -205,11 +188,12 @@ run_BFGS # Display all the information
 theta_final<-as.numeric(run_BFGS$theta) # This is the final value of theta from the algorithm
 ```
 
+```{r}
+cat('Number of iterations of this method where', run_BFGS$no_iterations)
+```
+
+As you can see Quasi Newton's method took 9 iterations to converge, where as last weeks regular implementation of Newton's method only took 3 iterations to converge. As I reassuring aside are final value for theta agrees across both methods so we can be more confident that we did not make a mistake in are implementation.
+
 ## Knit to html
 
-![](https://people.bath.ac.uk/kai21/ASI/img/knit-html-screenshot.png)	
-
-
-
-
-
+![](https://people.bath.ac.uk/kai21/ASI/img/knit-html-screenshot.png)
