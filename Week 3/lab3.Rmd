@@ -1,0 +1,187 @@
+---
+title: 'MA40198: Lab sheet 3'
+author: "Your name here"
+output:
+  html_document:
+    number_sections: no
+    toc: yes
+    toc_float: yes
+    code_download: yes
+always_allow_html: true
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, highlight = TRUE)
+library(tidyverse)
+```
+
+
+## Instructions
+
+* This  assignment should be done in groups  according to the coursework group allocation.
+
+ * As indicated in each question, you should complete the answers by filling-out  the 'Lab3.Rmd' file.  You can remove the instructions and introductory sections if you wish.
+ 
+ 
+* The  'Lab3.Rmd' file  can be downloaded by clicking in the **Code download** button at the top right of this page. If the button does not work you can download the 'Lab3.Rmd' file from the Moodle page. You should open this file in RStudio.
+ 
+
+*  After  completing the answers, each group should convert the 'Lab3.Rmd' file  into an HTML file  by following the instructions in the <a href="#knit-to-html">Knit to html</a> section at the end of this file!
+
+
+* Each group should submit two files:  the completed 'Lab3.Rmd' file  and the created HTML file (which should be named 'Lab3.html') to the  <a href="https://moodle.bath.ac.uk/mod/assign/view.php?id=1164345">submission point in Moodle</a>
+
+
+
+* This is lab is a **formative assessment** and  you will receive feedback to your submitted work on an informal basis.
+
+
+## Introduction
+
+Consider the example in [Section 2.3 of the lecture notes](https://moodle.bath.ac.uk/pluginfile.php/1924827/mod_resource/content/49/docs/01-optimisation.html#sec-example-nbinom-mle) where data on the number of COVID-19 related deaths in 311 local authorities in England is used. A negative Binomial model is assumed for the number of deaths in each local authority. More specifically, we assume $(Y_1,\ldots,Y_{311})$ are independent random variables corresponding to the number of COVID-19 deaths in each local authority and they all follow the same Negative Binomial distribution with  unknown size parameter $\eta^*$ and unknown probability parameter $p^*$ (see [Section 2.3.3](https://moodle.bath.ac.uk/pluginfile.php/1924827/mod_resource/content/49/docs/01-optimisation.html#negative-binomial-model)).
+
+The aim of this lab is to understand the asymptotic properties of the loglikelihood function and in particular of the maximimum likelihood estimators.
+
+
+## Question 1 
+
+Generate $N=10,000$ independent samples $\boldsymbol{y}_1,\ldots, \boldsymbol{y}_N$ each of size 311 from a Negative Binomial distribution with size $\eta^*=10$ and probability $p^*=0.05$. You may use the `R` function `rnbinom`.
+
+## Solution to Question 1 {-}
+
+```{r Q1, eval = FALSE}
+# your code here 
+# Do not display the samples just store them (for example, in a matrix) to use in the following questions
+
+```
+
+
+## Question 2
+
+For each sample $\boldsymbol{y}_i$ compute:
+
+* the maximum likelihood estimator $\widehat{\boldsymbol{\theta}}(\boldsymbol{y}_i)$. You can use the code in [Section 2.11 of the lecture notes](https://moodle.bath.ac.uk/pluginfile.php/1924827/mod_resource/content/49/docs/01-optimisation.html#example-negative-binomial-maximum-likelihood-2). Note this code uses `R` function `optim` that implements  a version of the BFGS quasi-Newton algorithm that you can use.
+
+
+
+So we get: 
+
+* a sample $\widehat{\boldsymbol{\theta}}(\boldsymbol{y}_1), \ldots, \widehat{\boldsymbol{\theta}}(\boldsymbol{y}_N)$  of size $N$ from the MLE
+
+* a sample $\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$  of size $N$ from the gradient evaluated at $(\theta_1^*,\theta_2^*)^T$.
+
+* a sample $\nabla^2\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\nabla^2\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$  of size $N$ from the Hessian evaluated at $(\theta_1^*,\theta_2^*)^T$.
+
+* a sample $\Delta(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\Delta(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$  of size $N$ from the Newton descent direction at $(\theta_1^*,\theta_2^*)^T$.
+
+Store this samples for use in the following questions.
+
+
+
+## Solution to Question 2  {-}
+
+```{r Q2, eval = FALSE}
+# your code here
+
+```
+
+
+## Question 3
+
+Let $[\boldsymbol{a}]_i$ denote the i-th entry of the vector $\boldsymbol{a}$. 
+
+With the samples obtained in Question 2, plot the following:
+
+* a histogram of $[\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y})]_1-\theta_1^*$
+* a histogram of $[\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y})]_2-\theta_2^*$
+
+* a scatterplot of$[\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y})]_1-\theta_1^*$ vs $[\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y})]_2-\theta_2^*$
+
+
+What can you conclude from these plots?
+
+## Solution to Question 3 {-}
+
+```{r Q3, eval = FALSE}
+# your code here
+
+```
+
+
+## Question 4
+
+With the samples obtained in Question 2, plot the following:
+
+* a histogram of $[\Delta(\boldsymbol{\theta}^*|\boldsymbol{y})]_1$
+
+* a histogram of $[\Delta(\boldsymbol{\theta}^*|\boldsymbol{y})]_2$
+
+* a scatter of $[\Delta(\boldsymbol{\theta}^*|\boldsymbol{y})]_1$ vs $[\Delta(\boldsymbol{\theta}^*|\boldsymbol{y})]_2$
+
+
+What can you conclude from these plots?
+
+## Solution to Question 4 {-}
+
+```{r Q4, eval = FALSE}
+# your code here
+
+```
+
+
+## Question 5
+
+With the samples obtained in Question 2, plot the following:
+
+
+* a scatterplot of $[\Delta(\boldsymbol{\theta}^*|\boldsymbol{y})]_1$ vs $[\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y})]_1-\theta_1^*$
+
+
+* a scatterplot of $[\Delta(\boldsymbol{\theta}^*|\boldsymbol{y})]_2$ vs $[\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y})]_2-\theta_2^*$
+
+What can you conclude from these plots?
+
+## Solution to Question 5 {-}
+
+```{r Q5, eval = FALSE}
+# your code here
+
+```
+
+## Question 6
+
+Compute the sample variance-covariance matrix of:
+
+* $\widehat{\boldsymbol{\theta}}(\boldsymbol{y}_1)-\boldsymbol{\theta}^*, \ldots, \widehat{\boldsymbol{\theta}}(\boldsymbol{y}_N)-\boldsymbol{\theta}^*$, and
+
+* $\Delta(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\Delta(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$
+
+Also compute the inverse of the sample variance-covariance matrix of $\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$ 
+
+Finally, compute the inverse of the  sample average of $\nabla^2\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\nabla^2\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$.
+
+
+You may use the function `cov` in `R`. What do you notice?
+
+## Solution to Question  {-}
+
+```{r Q6, eval = FALSE}
+# your code here
+
+```
+
+
+## Question 7
+
+How can you use the information concluded from the previous questions to construct a confidence interval for the unknown common mean number of COVID-19 deaths $\mu^*$ in the 311 local authorities in England?
+
+
+
+## Solution to Question 7 {-}
+
+
+
+## Knit to html
+
+![](https://people.bath.ac.uk/kai21/ASI/img/knit-html-screenshot.png)	

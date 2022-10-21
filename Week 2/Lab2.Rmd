@@ -1,6 +1,6 @@
 ---
 title: 'MA40198: Lab 2: Quasi-Newton methods'
-author: "Your name here"
+author: "Henry Patrick Jake"
 output:
   html_document:
     number_sections: no
@@ -50,7 +50,7 @@ deaths<-read.csv("https://people.bath.ac.uk/kai21/ASI/data/COVID19_MARCH_JUNE.cs
 
 ## Solution to Question {.unnumbered}
 
-```{r Q1, eval = FALSE}
+```{r Q1}
 # Chunk to compute starting value
 deaths<-read.csv("https://people.bath.ac.uk/kai21/ASI/data/COVID19_MARCH_JUNE.csv",header =TRUE)
 
@@ -189,10 +189,10 @@ theta_final<-as.numeric(run_BFGS$theta) # This is the final value of theta from 
 ```
 
 ```{r}
-cat('Number of iterations of this method where', run_BFGS$no_iterations)
+cat('Number of iterations of this method are', run_BFGS$no_iterations)
 ```
 
-As you can see Quasi Newton's method took 9 iterations to converge, where as last weeks regular implementation of Newton's method only took 3 iterations to converge. As I reassuring aside are final value for theta agrees across both methods so we can be more confident that we did not make a mistake in are implementation.
+As you can see Quasi Newton's method took 9 iterations to converge, where as last weeks regular implementation of Newton's method only took 3 iterations to converge. As I reassuring aside are final value for theta agrees across both methods so we can be more confident that we did not make a mistake in are implementations.
 
 ## Knit to html
 
