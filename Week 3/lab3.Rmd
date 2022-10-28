@@ -18,6 +18,7 @@ library(tidyverse)
 ## Instructions
 
 -   This assignment should be done in groups according to the coursework group allocation.
+<<<<<<< HEAD
 
 -   As indicated in each question, you should complete the answers by filling-out the 'Lab3.Rmd' file. You can remove the instructions and introductory sections if you wish.
 
@@ -27,6 +28,17 @@ library(tidyverse)
 
 -   Each group should submit two files: the completed 'Lab3.Rmd' file and the created HTML file (which should be named 'Lab3.html') to the <a href="https://moodle.bath.ac.uk/mod/assign/view.php?id=1164345">submission point in Moodle</a>
 
+=======
+
+-   As indicated in each question, you should complete the answers by filling-out the 'Lab3.Rmd' file. You can remove the instructions and introductory sections if you wish.
+
+-   The 'Lab3.Rmd' file can be downloaded by clicking in the **Code download** button at the top right of this page. If the button does not work you can download the 'Lab3.Rmd' file from the Moodle page. You should open this file in RStudio.
+
+-   After completing the answers, each group should convert the 'Lab3.Rmd' file into an HTML file by following the instructions in the <a href="#knit-to-html">Knit to html</a> section at the end of this file!
+
+-   Each group should submit two files: the completed 'Lab3.Rmd' file and the created HTML file (which should be named 'Lab3.html') to the <a href="https://moodle.bath.ac.uk/mod/assign/view.php?id=1164345">submission point in Moodle</a>
+
+>>>>>>> main
 -   This is lab is a **formative assessment** and you will receive feedback to your submitted work on an informal basis.
 
 ## Introduction
@@ -54,6 +66,7 @@ for (i in 1:N){ #for loop to generate samples
 For each sample $\boldsymbol{y}_i$ compute:
 
 -   the maximum likelihood estimator $\widehat{\boldsymbol{\theta}}(\boldsymbol{y}_i)$. You can use the code in [Section 2.11 of the lecture notes](https://moodle.bath.ac.uk/pluginfile.php/1924827/mod_resource/content/49/docs/01-optimisation.html#example-negative-binomial-maximum-likelihood-2). Note this code uses `R` function `optim` that implements a version of the BFGS quasi-Newton algorithm that you can use.
+<<<<<<< HEAD
 
 So we get:
 
@@ -63,6 +76,17 @@ So we get:
 
 -   a sample $\nabla^2\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\nabla^2\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$ of size $N$ from the Hessian evaluated at $(\theta_1^*,\theta_2^*)^T$.
 
+=======
+
+So we get:
+
+-   a sample $\widehat{\boldsymbol{\theta}}(\boldsymbol{y}_1), \ldots, \widehat{\boldsymbol{\theta}}(\boldsymbol{y}_N)$ of size $N$ from the MLE
+
+-   a sample $\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$ of size $N$ from the gradient evaluated at $(\theta_1^*,\theta_2^*)^T$.
+
+-   a sample $\nabla^2\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\nabla^2\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$ of size $N$ from the Hessian evaluated at $(\theta_1^*,\theta_2^*)^T$.
+
+>>>>>>> main
 -   a sample $\Delta(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\Delta(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$ of size $N$ from the Newton descent direction at $(\theta_1^*,\theta_2^*)^T$.
 
 Store this samples for use in the following questions.
@@ -242,8 +266,9 @@ How can you use the information concluded from the previous questions to constru
 
 ## Solution to Question 7 {.unnumbered}
 
-We can use the invers Fisher information matrix calculated above to gnerate a normaly distributed variable $\hat{\mu}\sim N(\mu^*,\mathcal{I}_{22}^{-1})$ , since $\theta_2^*$ is the mean number of deaths due to COVID. This can then be used to generate confidence intervals as shown in the lecture notes in Example 3.5.1.
+We can use the inverse Fisher information matrix calculated above to generate a normaly distributed variable $\hat{\mu}\sim N(\mu^*,\mathcal{I}_{22}^{-1})$ , since $\theta_2^*$ is the mean number of deaths due to COVID. This can then be used to generate confidence intervals as shown in the lecture notes in Example 3.5.1.
 
-## Knit to html {.unnumbered}
+
+## Knit to html
 
 ![](https://people.bath.ac.uk/kai21/ASI/img/knit-html-screenshot.png)
