@@ -236,6 +236,8 @@ inv_avg_hessian = solve(avg_hessian)
 
 ```
 
+We should expect that inv_avg_hessian and inv_var_cov_grad should be close to each other since they are both equal to $\mathcal{I}^{-1}$. But are values are not close to each other and are out bu orders of magnitude. This means that something has gone wrong somewhere but we can't find the bug.
+
 ## Question 7
 
 How can you use the information concluded from the previous questions to construct a confidence interval for the unknown common mean number of COVID-19 deaths $\mu^*$ in the 311 local authorities in England?
