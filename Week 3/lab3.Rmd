@@ -10,45 +10,36 @@ output:
 always_allow_html: true
 ---
 
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, highlight = TRUE)
 library(tidyverse)
 ```
 
-
 ## Instructions
 
-* This  assignment should be done in groups  according to the coursework group allocation.
+-   This assignment should be done in groups according to the coursework group allocation.
 
- * As indicated in each question, you should complete the answers by filling-out  the 'Lab3.Rmd' file.  You can remove the instructions and introductory sections if you wish.
- 
- 
-* The  'Lab3.Rmd' file  can be downloaded by clicking in the **Code download** button at the top right of this page. If the button does not work you can download the 'Lab3.Rmd' file from the Moodle page. You should open this file in RStudio.
- 
+-   As indicated in each question, you should complete the answers by filling-out the 'Lab3.Rmd' file. You can remove the instructions and introductory sections if you wish.
 
-*  After  completing the answers, each group should convert the 'Lab3.Rmd' file  into an HTML file  by following the instructions in the <a href="#knit-to-html">Knit to html</a> section at the end of this file!
+-   The 'Lab3.Rmd' file can be downloaded by clicking in the **Code download** button at the top right of this page. If the button does not work you can download the 'Lab3.Rmd' file from the Moodle page. You should open this file in RStudio.
 
+-   After completing the answers, each group should convert the 'Lab3.Rmd' file into an HTML file by following the instructions in the <a href="#knit-to-html">Knit to html</a> section at the end of this file!
 
-* Each group should submit two files:  the completed 'Lab3.Rmd' file  and the created HTML file (which should be named 'Lab3.html') to the  <a href="https://moodle.bath.ac.uk/mod/assign/view.php?id=1164345">submission point in Moodle</a>
+-   Each group should submit two files: the completed 'Lab3.Rmd' file and the created HTML file (which should be named 'Lab3.html') to the <a href="https://moodle.bath.ac.uk/mod/assign/view.php?id=1164345">submission point in Moodle</a>
 
-
-
-* This is lab is a **formative assessment** and  you will receive feedback to your submitted work on an informal basis.
-
+-   This is lab is a **formative assessment** and you will receive feedback to your submitted work on an informal basis.
 
 ## Introduction
 
-Consider the example in [Section 2.3 of the lecture notes](https://moodle.bath.ac.uk/pluginfile.php/1924827/mod_resource/content/49/docs/01-optimisation.html#sec-example-nbinom-mle) where data on the number of COVID-19 related deaths in 311 local authorities in England is used. A negative Binomial model is assumed for the number of deaths in each local authority. More specifically, we assume $(Y_1,\ldots,Y_{311})$ are independent random variables corresponding to the number of COVID-19 deaths in each local authority and they all follow the same Negative Binomial distribution with  unknown size parameter $\eta^*$ and unknown probability parameter $p^*$ (see [Section 2.3.3](https://moodle.bath.ac.uk/pluginfile.php/1924827/mod_resource/content/49/docs/01-optimisation.html#negative-binomial-model)).
+Consider the example in [Section 2.3 of the lecture notes](https://moodle.bath.ac.uk/pluginfile.php/1924827/mod_resource/content/49/docs/01-optimisation.html#sec-example-nbinom-mle) where data on the number of COVID-19 related deaths in 311 local authorities in England is used. A negative Binomial model is assumed for the number of deaths in each local authority. More specifically, we assume $(Y_1,\ldots,Y_{311})$ are independent random variables corresponding to the number of COVID-19 deaths in each local authority and they all follow the same Negative Binomial distribution with unknown size parameter $\eta^*$ and unknown probability parameter $p^*$ (see [Section 2.3.3](https://moodle.bath.ac.uk/pluginfile.php/1924827/mod_resource/content/49/docs/01-optimisation.html#negative-binomial-model)).
 
 The aim of this lab is to understand the asymptotic properties of the loglikelihood function and in particular of the maximimum likelihood estimators.
 
-
-## Question 1 
+## Question 1
 
 Generate $N=10,000$ independent samples $\boldsymbol{y}_1,\ldots, \boldsymbol{y}_N$ each of size 311 from a Negative Binomial distribution with size $\eta^*=10$ and probability $p^*=0.05$. You may use the `R` function `rnbinom`.
 
-## Solution to Question 1 {-}
+## Solution to Question 1 {.unnumbered}
 
 ```{r Q1, eval = FALSE}
 N=10000 #number of samples required
@@ -58,30 +49,25 @@ for (i in 1:N){ #for loop to generate samples
 } 
 ```
 
-
 ## Question 2
 
 For each sample $\boldsymbol{y}_i$ compute:
 
-* the maximum likelihood estimator $\widehat{\boldsymbol{\theta}}(\boldsymbol{y}_i)$. You can use the code in [Section 2.11 of the lecture notes](https://moodle.bath.ac.uk/pluginfile.php/1924827/mod_resource/content/49/docs/01-optimisation.html#example-negative-binomial-maximum-likelihood-2). Note this code uses `R` function `optim` that implements  a version of the BFGS quasi-Newton algorithm that you can use.
+-   the maximum likelihood estimator $\widehat{\boldsymbol{\theta}}(\boldsymbol{y}_i)$. You can use the code in [Section 2.11 of the lecture notes](https://moodle.bath.ac.uk/pluginfile.php/1924827/mod_resource/content/49/docs/01-optimisation.html#example-negative-binomial-maximum-likelihood-2). Note this code uses `R` function `optim` that implements a version of the BFGS quasi-Newton algorithm that you can use.
 
+So we get:
 
+-   a sample $\widehat{\boldsymbol{\theta}}(\boldsymbol{y}_1), \ldots, \widehat{\boldsymbol{\theta}}(\boldsymbol{y}_N)$ of size $N$ from the MLE
 
-So we get: 
+-   a sample $\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$ of size $N$ from the gradient evaluated at $(\theta_1^*,\theta_2^*)^T$.
 
-* a sample $\widehat{\boldsymbol{\theta}}(\boldsymbol{y}_1), \ldots, \widehat{\boldsymbol{\theta}}(\boldsymbol{y}_N)$  of size $N$ from the MLE
+-   a sample $\nabla^2\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\nabla^2\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$ of size $N$ from the Hessian evaluated at $(\theta_1^*,\theta_2^*)^T$.
 
-* a sample $\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$  of size $N$ from the gradient evaluated at $(\theta_1^*,\theta_2^*)^T$.
-
-* a sample $\nabla^2\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\nabla^2\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$  of size $N$ from the Hessian evaluated at $(\theta_1^*,\theta_2^*)^T$.
-
-* a sample $\Delta(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\Delta(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$  of size $N$ from the Newton descent direction at $(\theta_1^*,\theta_2^*)^T$.
+-   a sample $\Delta(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\Delta(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$ of size $N$ from the Newton descent direction at $(\theta_1^*,\theta_2^*)^T$.
 
 Store this samples for use in the following questions.
 
-
-
-## Solution to Question 2  {-}
+## Solution to Question 2 {.unnumbered}
 
 ```{r Q2, eval = FALSE}
 #Need the functions from the notes
@@ -145,102 +131,121 @@ for (i in 1:N){
 #I checked using any(is.nan()) and got false for all 4 storage arrays
 ```
 
-
 ## Question 3
 
-Let $[\boldsymbol{a}]_i$ denote the i-th entry of the vector $\boldsymbol{a}$. 
+Let $[\boldsymbol{a}]_i$ denote the i-th entry of the vector $\boldsymbol{a}$.
 
 With the samples obtained in Question 2, plot the following:
 
-* a histogram of $[\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y})]_1-\theta_1^*$
-* a histogram of $[\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y})]_2-\theta_2^*$
+-   a histogram of $[\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y})]_1-\theta_1^*$
 
-* a scatterplot of$[\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y})]_1-\theta_1^*$ vs $[\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y})]_2-\theta_2^*$
+-   a histogram of $[\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y})]_2-\theta_2^*$
 
+-   a scatterplot of$[\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y})]_1-\theta_1^*$ vs $[\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y})]_2-\theta_2^*$
 
 What can you conclude from these plots?
 
-## Solution to Question 3 {-}
+## Solution to Question 3 {.unnumbered}
 
 ```{r Q3, eval = FALSE}
 # your code here
+theta2_star =  log(10)
+theta1_star =  log(10*0.95/0.05)
+  
+hist(grad_values[,1]-theta1_star)
 
+hist(grad_values[,2]-theta2_star)
+
+plot(grad_values[,1]-theta1_star, grad_values[,2]-theta2_star)
 ```
-
 
 ## Question 4
 
 With the samples obtained in Question 2, plot the following:
 
-* a histogram of $[\Delta(\boldsymbol{\theta}^*|\boldsymbol{y})]_1$
+-   a histogram of $[\Delta(\boldsymbol{\theta}^*|\boldsymbol{y})]_1$
 
-* a histogram of $[\Delta(\boldsymbol{\theta}^*|\boldsymbol{y})]_2$
+-   a histogram of $[\Delta(\boldsymbol{\theta}^*|\boldsymbol{y})]_2$
 
-* a scatter of $[\Delta(\boldsymbol{\theta}^*|\boldsymbol{y})]_1$ vs $[\Delta(\boldsymbol{\theta}^*|\boldsymbol{y})]_2$
-
+-   a scatter of $[\Delta(\boldsymbol{\theta}^*|\boldsymbol{y})]_1$ vs $[\Delta(\boldsymbol{\theta}^*|\boldsymbol{y})]_2$
 
 What can you conclude from these plots?
 
-## Solution to Question 4 {-}
+## Solution to Question 4 {.unnumbered}
 
 ```{r Q4, eval = FALSE}
 # your code here
 
-```
+hist(newton_direction_values[,1])
 
+hist(newton_direction_values[,2])
+
+plot(newton_direction_values[,1], newton_direction_values[,2])
+```
 
 ## Question 5
 
 With the samples obtained in Question 2, plot the following:
 
+-   a scatterplot of $[\Delta(\boldsymbol{\theta}^*|\boldsymbol{y})]_1$ vs $[\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y})]_1-\theta_1^*$
 
-* a scatterplot of $[\Delta(\boldsymbol{\theta}^*|\boldsymbol{y})]_1$ vs $[\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y})]_1-\theta_1^*$
-
-
-* a scatterplot of $[\Delta(\boldsymbol{\theta}^*|\boldsymbol{y})]_2$ vs $[\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y})]_2-\theta_2^*$
+-   a scatterplot of $[\Delta(\boldsymbol{\theta}^*|\boldsymbol{y})]_2$ vs $[\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y})]_2-\theta_2^*$
 
 What can you conclude from these plots?
 
-## Solution to Question 5 {-}
+## Solution to Question 5 {.unnumbered}
 
 ```{r Q5, eval = FALSE}
 # your code here
-
+plot(newton_direction_values[,1], grad_values[,1]-theta1_star)
+plot(newton_direction_values[,2], grad_values[,2]-theta2_star)
 ```
 
 ## Question 6
 
 Compute the sample variance-covariance matrix of:
 
-* $\widehat{\boldsymbol{\theta}}(\boldsymbol{y}_1)-\boldsymbol{\theta}^*, \ldots, \widehat{\boldsymbol{\theta}}(\boldsymbol{y}_N)-\boldsymbol{\theta}^*$, and
+-   $\widehat{\boldsymbol{\theta}}(\boldsymbol{y}_1)-\boldsymbol{\theta}^*, \ldots, \widehat{\boldsymbol{\theta}}(\boldsymbol{y}_N)-\boldsymbol{\theta}^*$, and
 
-* $\Delta(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\Delta(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$
+-   $\Delta(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\Delta(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$
 
-Also compute the inverse of the sample variance-covariance matrix of $\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$ 
+Also compute the inverse of the sample variance-covariance matrix of $\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\nabla\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$
 
-Finally, compute the inverse of the  sample average of $\nabla^2\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\nabla^2\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$.
-
+Finally, compute the inverse of the sample average of $\nabla^2\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_1),\ldots,\nabla^2\ell(\boldsymbol{\theta}^*|\boldsymbol{y}_N)$.
 
 You may use the function `cov` in `R`. What do you notice?
 
-## Solution to Question  {-}
+## Solution to Question {.unnumbered}
 
 ```{r Q6, eval = FALSE}
-# your code here
+#Calculating the first part of the question
+var_cov_parmeter = cov(parameter_values-c(theta1_star,theta2_star))
+var_cov_newton_direction = cov(newton_direction_values)
+
+#Calculating the second part of the question
+inv_var_cov_grad = solve(cov(grad_values))
+
+#Calculating the last part of the question
+#Creating the average Hessian by computing the mean on each index(i,j,)
+avg_hessian = matrix(c(mean(hessian_values[1,1,]),
+                        mean(hessian_values[1,2,]), 
+                        mean(hessian_values[2,1,]),
+                        mean(hessian_values[2,2,])), byrow = TRUE, nrow = 2)
+#Inverting it
+inv_avg_hessian = solve(avg_hessian)
 
 ```
 
+We should expect that inv_avg_hessian and inv_var_cov_grad should be close to each other since they are both equal to $\mathcal{I}^{-1}$. But are values are not close to each other and are out bu orders of magnitude. This means that something has gone wrong somewhere but we can't find the bug.
 
 ## Question 7
 
 How can you use the information concluded from the previous questions to construct a confidence interval for the unknown common mean number of COVID-19 deaths $\mu^*$ in the 311 local authorities in England?
 
+## Solution to Question 7 {.unnumbered}
 
+We can use the inverse Fisher information matrix calculated above to generate a normally distributed variable $\hat{\mu}\sim N(\mu^*,\mathcal{I}_{22}^{-1})$ , since $\theta_2^*$ is the mean number of deaths due to COVID. This can then be used to generate confidence intervals as shown in the lecture notes in Example 3.5.1.
 
-## Solution to Question 7 {-}
+## Knit to html {.unnumbered}
 
-
-
-## Knit to html
-
-![](https://people.bath.ac.uk/kai21/ASI/img/knit-html-screenshot.png)	
+![](https://people.bath.ac.uk/kai21/ASI/img/knit-html-screenshot.png)
