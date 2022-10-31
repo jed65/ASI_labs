@@ -131,6 +131,7 @@ negloglik_hess <- function(theta = c(0,0),
 }
 
 
+suppressWarnings({ ## otherwise many warning messages about NaNs appears
 parameter_values<-matrix(0,nrow=N,ncol=2) #to store MLEs
 theta_star<-c(log(10),log(0.05/0.95))
 grad_values<-matrix(0,nrow=N,ncol=2) #to store gradient at theta_star
@@ -144,6 +145,7 @@ for (i in 1:N){
   hessian_values[,,i]<-negloglik_hess(theta_star,samples[i,]) #store hessian at theta_star
   newton_direction_values[i,]<- -solve(hessian_values[,,i])%*%grad_values[i,] #calculate newton direction
 }
+})
 #May get some warnings but all the outputs are sensible
 ```
 
@@ -165,15 +167,31 @@ What can you conclude from these plots?
 
 ```{r Q3, eval = TRUE}
 # your code here
-theta2_star =  log(10)
-theta1_star =  log(10*0.95/0.05)
-  
-hist(grad_values[,1]-theta1_star)
+theta1_star =  theta_star[1]
+theta2_star =  theta_star[2]
 
-hist(grad_values[,2]-theta2_star)
+# histogram with a normal curve overlayed
+x <- sort(grad_values[,1]-theta1_star)
+fun <- dnorm(x, mean = theta1_star, sd = sqrt(mean(hessian_values[1,1,])))
+hist(x, prob = TRUE)
+lines(x, fun, col = 2)
+
+
+x2 <- sort(grad_values[,2]-theta2_star)
+fun <- dnorm(x2, mean = theta2_star, sd = sqrt(mean(hessian_values[2,2,])))
+hist(x2, prob = TRUE)
+lines(x2, fun, col = 2)
+
+
 
 plot(grad_values[,1]-theta1_star, grad_values[,2]-theta2_star)
 ```
+
+
+The first two plots show that the distribution of grad_values is approximately normal for both parameters.
+
+The scatter plot shows that the two grad values are very negatively correlated with each other (we get pearson correlation ~ -0.9765 for this sample).
+
 
 ## Question 4
 
@@ -192,12 +210,21 @@ What can you conclude from these plots?
 ```{r Q4, eval = TRUE}
 # your code here
 
-hist(newton_direction_values[,1])
+x <- sort(newton_direction_values[,1])
+fun <- dnorm(x, mean = 0, sd = sd(x))
+hist(x, prob = TRUE)
+lines(x, fun, col = 2)
 
-hist(newton_direction_values[,2])
+x2 <- sort(newton_direction_values[,2])
+fun <- dnorm(x2, mean = 0, sd = sd(x2))
+hist(x2, prob = TRUE)
+lines(x2, fun, col = 2)
 
 plot(newton_direction_values[,1], newton_direction_values[,2])
 ```
+The first two plots show that the distribution of values is approximately normal for both parameters.
+
+The scatter plot shows that the two values are very positively correlated with each other (we get pearson correlation ~ 0.9765 for this sample, which is the negative of the correlation in the previous question).
 
 ## Question 5
 
@@ -216,6 +243,8 @@ What can you conclude from these plots?
 plot(newton_direction_values[,1], grad_values[,1]-theta1_star)
 plot(newton_direction_values[,2], grad_values[,2]-theta2_star)
 ```
+
+Seemingly a slight negative correlation for both.
 
 ## Question 6
 

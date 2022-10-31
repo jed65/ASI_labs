@@ -1,0 +1,191 @@
+---
+title: 'MA40198: Lab sheet 4'
+author: "Jake Denton, Patrick Fahy and Henry Writer"
+output:
+  html_document:
+    number_sections: no
+    toc: yes
+    toc_float: yes
+    code_download: yes
+always_allow_html: true
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, highlight = TRUE)
+library(tidyverse)
+library(polynom)
+```
+
+
+## Instructions
+
+* This  assignment should be done in groups  according to the coursework group allocation.
+
+ * As indicated in each question, you should complete the answers by filling-out  the 'Lab4.Rmd' file.  You can remove the instructions and introductory sections if you wish.
+ 
+ 
+* The  'Lab4.Rmd' file  can be downloaded by clicking in the **Code download** button at the top right of this page. If the button does not work you can download the 'Lab4.Rmd' file from the Moodle page. You should open this file in RStudio.
+ 
+
+*  After  completing the answers, each group should convert the 'Lab4.Rmd' file  into an HTML file  by following the instructions in the <a href="#knit-to-html">Knit to html</a> section at the end of this file!
+
+
+* Each group should submit two files:  the completed 'Lab4.Rmd' file  and the created HTML file (which should be named 'Lab4.html') to the  <a href="https://moodle.bath.ac.uk/mod/assign/view.php?id=1166734">submission point in Moodle</a>
+
+
+
+* This is lab is a **formative assessment** and  you will receive feedback to your submitted work on an informal basis.
+
+
+
+
+##  Count regression 
+
+Consider the following data which is a series of counts over the range ($[-10,10]$) of a standardised variable $x$.
+
+
+
+```{r}
+dat<-read.table(url("https://people.bath.ac.uk/kai21/ASI/data/count_regression.txt"),header = T)
+```
+
+Let $Y_x$ be the random variable corresponding to the count at $x$ .
+Consider the following possible model specifications:
+
+* $Y_{-10},Y_{-9},\ldots,Y_{-1},Y_0,Y_{1},\ldots,Y_9,Y_{10}$ are independent random variables with unknown mean $\mu^*_x$ for $x=-10,\ldots,10$
+
+* $Y_x\sim$ Poisson($\mu^*_x$)  for $x=-10,\ldots,10$ 
+
+* $\log(\mu^*_x)=\sum_{i=0}^{p}\theta^*_i\,x^i$. We consider $p=1,2,3,4$
+
+The above specifications generate 4 different models. 
+
+
+### Question 1
+
+Plot the the counts against the variable $x$. 
+
+### Solution to  Question 1
+
+```{r Q1}
+# Your code here
+plot(dat)
+```
+
+
+### Question 2
+
+For each of the 4 models, compute the maximum likelihood estimates for the corresponding unknown parameters. You should use `optim` with the `BFGS` method and supply the  corresponding gradient function. Please note that given the number of models, you should consider using the R function `deriv` to obtain the gradient functions. You should also use the option `hessian=TRUE` when calling `optim`. You should call the outputs from `optim` for each as follows: `fit.linear`, `fit.quad` , `fit.cubic`, `fit.quartic`.
+
+### Solution to Question 2
+
+
+
+```{r Q2}
+# Your code here
+
+### Will do this later
+
+loglikelihood_<-function(size,prob,data){
+  
+  sum_log_dens <- function(x,size,prob){
+    sum(dnbinom(x,size,prob,log = TRUE))  
+  }
+  
+  map2_dbl(.x = size,
+           .y = prob,
+           .f = sum_log_dens,
+           x = data)
+  
+}
+
+
+
+optim(method='BFGS', hessian=TRUE)
+```
+
+### Question 3
+
+Consider the code below with its corresponding output plot. Explain in detail what the code is doing. The output plot should help you to understand what the code is doing!
+
+
+
+
+```{r,eval=FALSE}
+library(polynom)
+
+predict.fit<-function(fit,newdata){
+  
+  poly  <- polynomial(fit$par)
+  
+  mean  <- predict(poly,newdata)
+  
+  estimate_Fisher <- solve(fit$hessian)
+  
+  poly_matrix     <- cbind(1,poly(newdata,
+                                  degree=(length(fit$par)-1),
+                                  raw=T,
+                                  simple=T))
+  
+  var <- diag(poly_matrix%*%estimate_Fisher%*%t(poly_matrix))
+
+  std_error<-sqrt(var) 
+  
+  list(fit    = mean,
+       se.fit = std_error)
+  
+}
+
+x_grid<-seq(-15,15,length.out = 1000)
+
+pred_linear  <- predict.fit(fit.linear ,x_grid)
+pred_quad    <- predict.fit(fit.quad   ,x_grid)
+pred_cubic   <- predict.fit(fit.cubic  ,x_grid)
+pred_quartic <- predict.fit(fit.quartic,x_grid)
+
+
+par(mfrow=c(2,2))
+
+plot(dat$x,dat$y,
+     ylim=c(0,50),xlim=c(-16,16),
+     xlab="x",ylab="count",
+     main="log linear (p=1)")
+
+lines(x_grid,exp(pred_linear$fit),                        col="red",lty=2)
+lines(x_grid,exp(pred_linear$fit-1.96*pred_linear$se.fit),col="red")
+lines(x_grid,exp(pred_linear$fit+1.96*pred_linear$se.fit),col="red")
+
+plot(dat$x,dat$y,
+     ylim=c(0,50),xlim=c(-16,16),
+     xlab="x",ylab="count",
+     main="log quadratic (p=2)")
+
+lines(x_grid,exp(pred_quad$fit),                      col="red",lty=2)
+lines(x_grid,exp(pred_quad$fit-1.96*pred_quad$se.fit),col="red")
+lines(x_grid,exp(pred_quad$fit+1.96*pred_quad$se.fit),col="red")
+
+plot(dat$x,dat$y,
+     ylim=c(0,50),xlim=c(-16,16),
+     xlab="x",ylab="count",
+     main="log cubic (p=3)")
+
+lines(x_grid,exp(pred_cubic$fit),                       col="red",lty=2)
+lines(x_grid,exp(pred_cubic$fit-1.96*pred_cubic$se.fit),col="red")
+lines(x_grid,exp(pred_cubic$fit+1.96*pred_cubic$se.fit),col="red")
+
+plot(dat$x,dat$y,
+     ylim=c(0,50),xlim=c(-16,16),
+     xlab="x",ylab="count",
+     main="log quartic (p=4)")
+
+lines(x_grid,exp(pred_quartic$fit),                         col="red",lty=2)
+lines(x_grid,exp(pred_quartic$fit-1.96*pred_quartic$se.fit),col="red")
+lines(x_grid,exp(pred_quartic$fit+1.96*pred_quartic$se.fit),col="red")
+
+
+```
+
+### Solution to  Question 3
+
+You can write your answer here.
