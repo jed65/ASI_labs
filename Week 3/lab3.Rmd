@@ -244,7 +244,7 @@ plot(newton_direction_values[,1], grad_values[,1]-theta1_star)
 plot(newton_direction_values[,2], grad_values[,2]-theta2_star)
 ```
 
-Seemingly a slight negative correlation for both.
+Centred around (0,0) for both.
 
 ## Question 6
 
