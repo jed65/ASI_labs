@@ -1,6 +1,6 @@
 ---
 title: 'MA40198: Lab sheet 5'
-author: "Karim Anaya-Izquierdo"
+author: "Jake Denton, Patrick Fahy and Henry Writer"
 output:
   html_document:
     number_sections: no
@@ -126,13 +126,17 @@ opt <- optim(par     = c(0,0),
              fn      = negloglik_fn,
              gr      = negloglik_grad,
              method="BFGS",
-             data    = dat_genbinom$x)
+             data    = dat_genbinom$x,
+             hessian=TRUE)
 
 thetas<-opt$par
+j_inv = solve(opt$hessian)
 
+z = qnorm(0.95)
 
+CI_theta2 <- c(thetas[2] - z*sqrt(j_inv[2,2]), thetas[2]+z*sqrt(j_inv[2,2]))
 
-
+## CI contains 0 so null hypothesis isn't rejected
 
 
 negloglik_fn2 <- function(theta, data){
@@ -161,7 +165,8 @@ opt2 <- optim(par     = 0,
              fn      = negloglik_fn2,
              gr      = negloglik_grad2,
              method="BFGS",
-             data    = dat_genbinom$x)
+             data    = dat_genbinom$x,
+             hessian=TRUE)
 
 thetas2<-opt2$par
 
@@ -236,13 +241,26 @@ opt <- optim(par     = c(0,0),
              fn      = negloglik_fn,
              gr      = negloglik_grad,
              method="BFGS",
-             data    = dat_genbinom$x)
+             data    = dat_genbinom$x,
+             hessian = TRUE)
 
 thetas<-opt$par
 
+j_inv = solve(opt$hessian)
+
+CI_theta2 <- c(thetas[2] - z*sqrt(j_inv[2,2]), thetas[2]+z*sqrt(j_inv[2,2]))
+
+findl2func <- function(theta2){
+  phi <- log(sum(choose(N, xx)*exp(xx*thetas[1]+xx*(N-xx)*theta2)))
+  lambda1 <- sum(choose(N, xx)*xx*exp(xx*thetas[1]+xx*(N-xx)*theta2-phi))
+  lambda2 <- sum(choose(N, xx)*xx*(N-xx)*exp(xx*thetas[1]+xx*(N-xx)*theta2-phi))
+  return ((3*lambda1 + 4*lambda2-60)^2)
+}
+theta2 <- optimize(f=findl2func, interval=c(-100,100))$minimum
 
 
 
+# theta2 which satisfies the null hypothesis is contained within the confidence interval in the alternative hypothesis, insufficient evidence to reject the null hypothesis
 
 
 negloglik_fn2 <- function(theta, data){
