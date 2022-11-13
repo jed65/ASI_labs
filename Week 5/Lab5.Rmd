@@ -1,0 +1,358 @@
+---
+title: 'MA40198: Lab sheet 5'
+author: "Karim Anaya-Izquierdo"
+output:
+  html_document:
+    number_sections: no
+    toc: yes
+    toc_float: yes
+    code_download: yes
+always_allow_html: true
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, highlight = TRUE)
+library(tidyverse)
+library(polynom)
+```
+
+
+## Instructions
+
+* This  assignment should be done in groups  according to the coursework group allocation.
+
+ * As indicated in each question, you should complete the answers by filling-out  the 'Lab5.Rmd' file.  You can remove the instructions and introductory sections if you wish.
+ 
+ 
+* The  'Lab5.Rmd' file  can be downloaded by clicking in the **Code download** button at the top right of this page. If the button does not work you can download the 'Lab4.Rmd' file from the Moodle page. You should open this file in RStudio.
+ 
+
+*  After  completing the answers, each group should convert the 'Lab5.Rmd' file  into an HTML file  by following the instructions in the <a href="#knit-to-html">Knit to html</a> section at the end of this file!
+
+
+* Each group should submit two files:  the completed 'Lab5.Rmd' file  and the created HTML file (which should be named 'Lab5.html') to the  <a href="https://moodle.bath.ac.uk/mod/assign/view.php?id=1172556">submission point in Moodle</a>
+
+
+
+* This is lab is a **formative assessment** and  you will receive feedback to your submitted work on an informal basis.
+
+
+##  Question 1:  Generalised Binomial distribution
+
+Consider the following independent sample $\boldsymbol{y}=(y_1,\ldots,y_n)^T$ of size $n=20$ from a generalised Binomial distribution  with known index $N=8$ and unknown parameters $\theta_1^*$ and $\theta_2^*$. 
+
+```{r}
+dat_genbinom<-read.table(url("https://people.bath.ac.uk/kai21/ASI/data/genbinom_sample.txt"),header = T)
+
+```
+
+
+The density of a generalised binomial with parameters $\theta_1\in R$ and $\theta_2 \in R$ is given by:
+
+$$f(y|\boldsymbol{\theta})={N\choose y} \exp\left(y\theta_1+y(N-y)\,\theta_2 -\Psi(\boldsymbol{\theta})\right)\,,\qquad y\in \{0,1,2,\ldots,N\}$$
+where:
+\begin{equation*}
+\Psi(\boldsymbol{\theta})=\log\left(\sum_{i=0}^N{N\choose i} \exp\left(i\theta_1+i(N-i)\,\theta_2 \right)\right)\,.
+\end{equation*}
+
+
+
+
+### Question 1.1
+
+Use both:
+
+* the asymptotic normality of the maximum likelihood estimators and 
+
+* the generalised likelihood ratio test  (GLRT)
+
+to test the following hypotheses:
+
+$$H_0:\,\theta^*_2=0 \qquad \mbox{vs}\qquad H_a:\,\theta^*_2\neq 0$$
+
+
+
+In both cases set an approximate significance level of $0.05$.
+
+```{r}
+
+# density of the generalised Binomial
+# dgenbinom<-function(x,theta1,theta2){ 
+#   N <- 8
+#   xx       <- 0:N # support set
+#   phi      <- log(sum(choose(N, xx)*exp(xx*theta1+xx*(N-xx)*theta2)))
+#   res <- choose(N, x)*exp(x*theta1+x*(N-x)*theta2-phi)
+#   return(res)
+# }
+
+
+
+# negloglik_fn<-function(theta = c(0,0), data = 1){
+#   sum_log_dens <- function(x,theta1,theta2){
+#       -sum(log(dgenbinom(x,theta1,theta2))) 
+#   }
+#   mapply(FUN      = sum_log_dens,
+#          theta1   = theta[1],
+#          theta2   = theta[2],
+#          MoreArgs = list(x = data))
+# }
+
+negloglik_fn <- function(theta, data){
+  N <- 8
+  xx <- 0:N
+  n <- length(data)
+  phi <- log(sum(choose(N, xx)*exp(xx*theta[1]+xx*(N-xx)*theta[2])))
+  res <- -sum(lchoose(N, data))+n*phi-theta[1]*sum(data)-theta[2]*sum(data*(N-data))
+  return (res)
+}
+
+# gradient of the loglikelihood
+negloglik_grad<-function(theta,data){
+  N <- 8
+  n <- length(data)
+  xx <- 0:N
+  phi <- log(sum(choose(N, xx)*exp(xx*theta[1]+xx*(N-xx)*theta[2])))
+  first_sum <- sum(choose(N, xx)*xx*exp(xx*theta[1]+xx*(N-xx)*theta[2]-phi))
+  second_sum <- sum(choose(N, xx)*xx*(N-xx)*exp(xx*theta[1]+xx*(N-xx)*theta[2]-phi))
+  wrttheta1 <- first_sum
+  wrttheta2 <- second_sum
+  grad <- -c(sum(data) - n*wrttheta1, sum(data*(N-data))  - n*wrttheta2)
+  return (grad)
+}
+
+
+opt <- optim(par     = c(0,0),
+             fn      = negloglik_fn,
+             gr      = negloglik_grad,
+             method="BFGS",
+             data    = dat_genbinom$x)
+
+thetas<-opt$par
+
+
+
+
+
+
+negloglik_fn2 <- function(theta, data){
+  N <- 8
+  xx <- 0:N
+  n <- length(data)
+  phi <- log(sum(choose(N, xx)*exp(xx*theta)))
+  res <- -sum(lchoose(N, data))+n*phi-theta*sum(data)
+  return (res)
+}
+
+# gradient of the loglikelihood
+negloglik_grad2<-function(theta,data){
+  N <- 8
+  n <- length(data)
+  xx <- 0:N
+  phi <- log(sum(choose(N, xx)*exp(xx*theta)))
+  first_sum <- sum(choose(N, xx)*xx*exp(xx*theta-phi))
+  wrttheta1 <- first_sum
+  grad <- -sum(data) + n*wrttheta1
+  return (grad)
+}
+
+
+opt2 <- optim(par     = 0,
+             fn      = negloglik_fn2,
+             gr      = negloglik_grad2,
+             method="BFGS",
+             data    = dat_genbinom$x)
+
+thetas2<-opt2$par
+
+l1 <- negloglik_fn(thetas, dat_genbinom$x)
+l2 <- negloglik_fn2(thetas2, dat_genbinom$x)
+
+2*(l2-l1) > qchisq(p=.05, df=1, lower.tail=FALSE)
+
+## False, so null hypothesis isn't rejected
+
+```
+
+
+
+### Question 1.2
+
+Use both:
+
+* the asymptotic normality of the maximum likelihood estimators and 
+
+* the generalised likelihood ratio test  (GLRT)
+
+to test the following hypotheses:
+
+$$H_0:\,3\lambda^*_1+4\lambda_2^*=60 \qquad \mbox{vs}\qquad H_a:\,3\lambda^*_1+4\lambda_2^*\neq 60$$
+where  
+$$
+\begin{pmatrix}
+\lambda_1\\
+\lambda_2
+\end{pmatrix}
+=
+\begin{pmatrix}
+E_{\boldsymbol{\theta}}[Y]\\
+E_{\boldsymbol{\theta}}[Y(N-Y)]
+\end{pmatrix}
+$$
+
+
+and $Y$ is random variable following a generalised Binomial with parameters $\boldsymbol{\theta}=(\theta_1,\theta_2)^T$.
+
+In both cases set an approximate significance level of $0.05$.
+
+
+
+```{r}
+negloglik_fn <- function(theta, data){
+  N <- 8
+  xx <- 0:N
+  n <- length(data)
+  phi <- log(sum(choose(N, xx)*exp(xx*theta[1]+xx*(N-xx)*theta[2])))
+  res <- -sum(lchoose(N, data))+n*phi-theta[1]*sum(data)-theta[2]*sum(data*(N-data))
+  return (res)
+}
+
+# gradient of the loglikelihood
+negloglik_grad<-function(theta,data){
+  N <- 8
+  n <- length(data)
+  xx <- 0:N
+  phi <- log(sum(choose(N, xx)*exp(xx*theta[1]+xx*(N-xx)*theta[2])))
+  first_sum <- sum(choose(N, xx)*xx*exp(xx*theta[1]+xx*(N-xx)*theta[2]-phi))
+  second_sum <- sum(choose(N, xx)*xx*(N-xx)*exp(xx*theta[1]+xx*(N-xx)*theta[2]-phi))
+  wrttheta1 <- first_sum
+  wrttheta2 <- second_sum
+  grad <- -c(sum(data) - n*wrttheta1, sum(data*(N-data))  - n*wrttheta2)
+  return (grad)
+}
+
+
+opt <- optim(par     = c(0,0),
+             fn      = negloglik_fn,
+             gr      = negloglik_grad,
+             method="BFGS",
+             data    = dat_genbinom$x)
+
+thetas<-opt$par
+
+
+
+
+
+
+negloglik_fn2 <- function(theta, data){
+  N <- 8
+  xx <- 0:N
+  n <- length(data)
+  findl2func <- function(theta2){
+    phi <- log(sum(choose(N, xx)*exp(xx*theta+xx*(N-xx)*theta2)))
+    lambda1 <- sum(choose(N, xx)*xx*exp(xx*theta+xx*(N-xx)*theta2-phi))
+    lambda2 <- sum(choose(N, xx)*xx*(N-xx)*exp(xx*theta+xx*(N-xx)*theta2-phi))
+    return ((3*lambda1 + 4*lambda2-60)^2)
+  }
+  theta2 <- optimize(f=findl2func, interval=c(-100,100))$minimum
+  phi <- log(sum(choose(N, xx)*exp(xx*theta+xx*(N-xx)*theta2)))
+  res <- -sum(lchoose(N, data))+n*phi-theta*sum(data)-theta2*sum(data*(N-data))
+  return (res)
+}
+
+# gradient of the loglikelihood
+negloglik_grad2<-function(theta,data){
+  N <- 8
+  n <- length(data)
+  xx <- 0:N
+  findl2func <- function(theta2){
+    phi <- log(sum(choose(N, xx)*exp(xx*theta+xx*(N-xx)*theta2)))
+    lambda1 <- sum(choose(N, xx)*xx*exp(xx*theta+xx*(N-xx)*theta2-phi))
+    lambda2 <- sum(choose(N, xx)*xx*(N-xx)*exp(xx*theta+xx*(N-xx)*theta2-phi))
+    return((3*lambda1 + 4*lambda2-60)^2)
+  }
+  theta2 <- optimize(f=findl2func, interval=c(-100,100))$minimum
+  phi <- log(sum(choose(N, xx)*exp(xx*theta+xx*(N-xx)*theta2)))
+  first_sum <- sum(choose(N, xx)*xx*exp(xx*theta+xx*(N-xx)*theta2-phi))
+  wrttheta1 <- first_sum
+  grad <- -sum(data) + n*wrttheta1
+  return (grad)
+}
+
+
+
+opt2 <- optim(par     = 0,
+             fn      = negloglik_fn2,
+             gr      = negloglik_grad2,
+             method="BFGS",
+             data    = dat_genbinom$x)
+
+thetas2<-opt2$par
+
+l1 <- negloglik_fn(thetas, dat_genbinom$x)
+l2 <- negloglik_fn2(thetas2, dat_genbinom$x)
+
+2*(l2-l1) > qchisq(p=.05, df=1, lower.tail=FALSE)
+
+## True, so there is evidence to reject the null hypothesis
+```
+
+
+
+
+## Question 2: Gamma distribution
+
+
+
+Consider the following independent sample $\boldsymbol{y}=(y_1,\ldots, y_n)^T$ of size $n=20$ from Gamma distribution with unknown  shape parameter $\alpha^*>0$ and  unknown rate parameter $\beta^*>0$
+
+```{r}
+dat_gamma<-read.table(url("https://people.bath.ac.uk/kai21/ASI/data/gamma_sample.txt"),header = T)
+```
+
+
+The  probability density function of a Gamma distribution with shape $\alpha>0$ and rate $\beta>0$ is given by
+$$f(y|\alpha,\beta)=\frac{\beta^\alpha}{\Gamma(\alpha)}\,y^{\alpha-1}e^{-\beta\,y}\,,\quad\mbox{for }\quad y>0$$
+
+### Question 2.1
+
+Use both:
+
+* the asymptotic normality of the maximum likelihood estimators and 
+
+* the generalised likelihood ratio test  (GLRT)
+
+to test the following hypotheses:
+
+$$H_0:\,\alpha^*=(\beta^*)^2 \qquad \mbox{vs}\qquad H_a:\alpha^*\neq(\beta^*)^2$$
+
+In both cases set an approximate significance level of $0.05$.
+
+## Question 3: Log-logistic distribution
+
+
+
+Consider the following independent sample $\boldsymbol{y}=(y_1,\ldots, y_n)^T$ of size $n=50$ from a Log-logistic distribution with unknown  scale parameter $\theta_1^*>0$ and  unknown shape parameter $\theta_2^*>0$
+
+```{r}
+dat_loglogis<-read.table(url("https://people.bath.ac.uk/kai21/ASI/data/loglogistic_sample.txt"),header = T)
+```
+
+The density of a log-logistic distribution with scale parameter $\theta_1>0$ and shape parameter $\theta_2>0$ is given by:
+$$\displaystyle f(y|\boldsymbol{\theta})=\frac{\frac{\theta_2}{\theta_1}\left(\frac{y}{\theta_1}\right)^{\theta_2-1}}{\left(1+\left(\frac{y}{\theta_1}\right)^{\theta_2}\right)^2}\,,\qquad y>0$$
+
+### Question 3.1
+
+Use both:
+
+* the asymptotic normality of the maximum likelihood estimators and 
+
+* the generalised likelihood ratio test  (GLRT)
+
+to test the following hypotheses:
+
+$$H_0:\,\theta_1^*\theta_2^*=1 \qquad \mbox{vs}\qquad H_a:\theta_1^*\theta_2^*\neq1$$
+
+In both cases set an approximate significance level of $0.05$.
+
