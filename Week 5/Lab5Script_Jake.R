@@ -1,7 +1,6 @@
 #Read in the data, 20 obs. of one variable
 dat_gamma<-read.table(url("https://people.bath.ac.uk/kai21/ASI/data/gamma_sample.txt"),header = T)
 
-
 #### Reparametrisation and optimisation ####
 #Consider parametrisation given by lambda=(log(alpha),log(beta))
 #This takes onto the unconstrained real domain, where we can use optim()
@@ -41,8 +40,6 @@ hess_theta_observed<-t(J)%*%hess_lambda_observed%*%J
 
 #Can get inverse of this observed fisher info matrix (in terms of (alpha,beta))
 inverse_fisher_theta<-solve(hess_theta_observed) #Has reasonable values
-
-#Summarising, we have inverse observed fisher and MLE for theta=(alpha,beta)
 
 #### Hypothesis test - Confidence intervals ####
 #For hypothesis test, use reparametrisation gamma=(alpha-beta^2,beta)
