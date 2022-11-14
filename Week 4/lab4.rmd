@@ -85,24 +85,72 @@ For each of the 4 models, compute the maximum likelihood estimates for the corre
 ```{r Q2}
 # Your code here
 
-### Will do this later
+init_1 = c(1,1)
+init_2 = c(1,1,1)
+init_3 = c(1,1,1,1)
+init_4 = c(1,1,1,1,1)
 
-loglikelihood_<-function(size,prob,data){
-  
-  sum_log_dens <- function(x,size,prob){
-    sum(dnbinom(x,size,prob,log = TRUE))  
-  }
-  
-  map2_dbl(.x = size,
-           .y = prob,
-           .f = sum_log_dens,
-           x = data)
-  
+nloglik1 <- function(theta, data){
+  xt1 = theta[1]*rep(1,length(x))
+  xt2 = x*theta[2]
+  sm <- sum(y*xt1) + sum(y*xt2)
+  return(-(sm + sum(log(y)) - sum(exp(xt1+xt2))))
+}
+
+nloglik2 <- function(theta, data){
+  xt1 = theta[1]*rep(1,length(x))
+  xt2 = x*theta[2]
+  xt3 = theta[3]*x^2
+  sm <- sum(y*xt1) + sum(y*xt2) + sum(y*xt3)
+  return(-(sm + sum(log(y)) - sum(exp(xt1+xt2+xt3))))
+}
+
+nloglik3 <- function(theta, data){
+  xt1 = theta[1]*rep(1,length(x))
+  xt2 = x*theta[2]
+  xt3 = theta[3]*x^2
+  xt4 = theta[4]*x^3
+  sm <- sum(y*xt1) + sum(y*xt2) + sum(y*xt3) + sum(y*xt4)
+  return(-(sm + sum(log(y)) - sum(exp(xt1+xt2+xt3+xt4))))
+}
+
+nloglik4 <- function(theta, data){
+  xt1 = theta[1]*rep(1,length(x))
+  xt2 = x*theta[2]
+  xt3 = theta[3]*x^2
+  xt4 = theta[4]*x^3
+  xt5 = theta[5]*x^3
+  sm <- sum(y*xt1) + sum(y*xt2) + sum(y*xt3) + sum(y*xt4)+ sum(y*xt5)
+  return(-(sm + sum(log(y)) - sum(exp(xt1+xt2+xt3+xt4+xt5))))
 }
 
 
+ngrad1 <- function(theta, data){
+  xt1 = theta[1]*rep(1,length(x))
+  xt2 = x*theta[2]
+  return(-c(sum(y)-sum(exp(xt1+xt2)), sum(y*x)-sum(x*exp(xt1+xt2))))
+}
 
-optim(method='BFGS', hessian=TRUE)
+fit.linear <- optim(par=init_1,fn=nloglik1 , gr=ngrad1, data=dat, method="BFGS",hessian=TRUE)
+fit.quad <- optim(par=init_2,fn=nloglik2, gr=grad2, data=dat, method="BFGS",hessian=TRUE)
+fit.cubic <- optim(par=init_3,fn=nloglik3, gr=grad3, data=dat, method="BFGS",hessian=TRUE)
+fit.quartic <- optim(par=init_4,fn=nloglik4, gr=grad4, data=dat, method="BFGS",hessian=TRUE)
+
+
+
+x_new = -10:10
+
+pars1 = fit.linear$par
+pars2 = fit.quad$par
+pars3 = fit.cubic$par
+pars4 = fit.quartic$par
+
+
+plot(dat)
+lines(x_new, pars1[1]+pars1[2]*x_new, col="red")
+lines(x_new, pars2[1]+pars2[2]*x_new+pars2[3]*(x_new^2), col="red")
+lines(x_new, pars3[1]+pars3[2]*x_new+pars3[3]*(x_new^2)+pars3[4]*(x_new^3), col="red")
+lines(x_new, pars4[1]+pars4[2]*x_new+pars4[3]*(x_new^2)+pars4[4]*(x_new^3)+pars4[5]*(x_new^4), col="red")
 ```
 
 ### Question 3
