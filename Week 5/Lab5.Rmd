@@ -10,68 +10,52 @@ output:
 always_allow_html: true
 ---
 
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, highlight = TRUE)
 library(tidyverse)
 library(polynom)
 ```
 
-
 ## Instructions
 
-* This  assignment should be done in groups  according to the coursework group allocation.
+-   This assignment should be done in groups according to the coursework group allocation.
 
- * As indicated in each question, you should complete the answers by filling-out  the 'Lab5.Rmd' file.  You can remove the instructions and introductory sections if you wish.
- 
- 
-* The  'Lab5.Rmd' file  can be downloaded by clicking in the **Code download** button at the top right of this page. If the button does not work you can download the 'Lab4.Rmd' file from the Moodle page. You should open this file in RStudio.
- 
+-   As indicated in each question, you should complete the answers by filling-out the 'Lab5.Rmd' file. You can remove the instructions and introductory sections if you wish.
 
-*  After  completing the answers, each group should convert the 'Lab5.Rmd' file  into an HTML file  by following the instructions in the <a href="#knit-to-html">Knit to html</a> section at the end of this file!
+-   The 'Lab5.Rmd' file can be downloaded by clicking in the **Code download** button at the top right of this page. If the button does not work you can download the 'Lab4.Rmd' file from the Moodle page. You should open this file in RStudio.
 
+-   After completing the answers, each group should convert the 'Lab5.Rmd' file into an HTML file by following the instructions in the <a href="#knit-to-html">Knit to html</a> section at the end of this file!
 
-* Each group should submit two files:  the completed 'Lab5.Rmd' file  and the created HTML file (which should be named 'Lab5.html') to the  <a href="https://moodle.bath.ac.uk/mod/assign/view.php?id=1172556">submission point in Moodle</a>
+-   Each group should submit two files: the completed 'Lab5.Rmd' file and the created HTML file (which should be named 'Lab5.html') to the <a href="https://moodle.bath.ac.uk/mod/assign/view.php?id=1172556">submission point in Moodle</a>
 
+-   This is lab is a **formative assessment** and you will receive feedback to your submitted work on an informal basis.
 
+## Question 1: Generalised Binomial distribution
 
-* This is lab is a **formative assessment** and  you will receive feedback to your submitted work on an informal basis.
-
-
-##  Question 1:  Generalised Binomial distribution
-
-Consider the following independent sample $\boldsymbol{y}=(y_1,\ldots,y_n)^T$ of size $n=20$ from a generalised Binomial distribution  with known index $N=8$ and unknown parameters $\theta_1^*$ and $\theta_2^*$. 
+Consider the following independent sample $\boldsymbol{y}=(y_1,\ldots,y_n)^T$ of size $n=20$ from a generalised Binomial distribution with known index $N=8$ and unknown parameters $\theta_1^*$ and $\theta_2^*$.
 
 ```{r}
 dat_genbinom<-read.table(url("https://people.bath.ac.uk/kai21/ASI/data/genbinom_sample.txt"),header = T)
 
 ```
 
-
 The density of a generalised binomial with parameters $\theta_1\in R$ and $\theta_2 \in R$ is given by:
 
-$$f(y|\boldsymbol{\theta})={N\choose y} \exp\left(y\theta_1+y(N-y)\,\theta_2 -\Psi(\boldsymbol{\theta})\right)\,,\qquad y\in \{0,1,2,\ldots,N\}$$
-where:
-\begin{equation*}
+$$f(y|\boldsymbol{\theta})={N\choose y} \exp\left(y\theta_1+y(N-y)\,\theta_2 -\Psi(\boldsymbol{\theta})\right)\,,\qquad y\in \{0,1,2,\ldots,N\}$$ where: \begin{equation*}
 \Psi(\boldsymbol{\theta})=\log\left(\sum_{i=0}^N{N\choose i} \exp\left(i\theta_1+i(N-i)\,\theta_2 \right)\right)\,.
 \end{equation*}
-
-
-
 
 ### Question 1.1
 
 Use both:
 
-* the asymptotic normality of the maximum likelihood estimators and 
+-   the asymptotic normality of the maximum likelihood estimators and
 
-* the generalised likelihood ratio test  (GLRT)
+-   the generalised likelihood ratio test (GLRT)
 
 to test the following hypotheses:
 
 $$H_0:\,\theta^*_2=0 \qquad \mbox{vs}\qquad H_a:\,\theta^*_2\neq 0$$
-
-
 
 In both cases set an approximate significance level of $0.05$.
 
@@ -132,7 +116,7 @@ opt <- optim(par     = c(0,0),
 thetas<-opt$par
 j_inv = solve(opt$hessian)
 
-z = qnorm(0.95)
+z = qnorm(0.025,lower.tail = FALSE)
 
 CI_theta2 <- c(thetas[2] - z*sqrt(j_inv[2,2]), thetas[2]+z*sqrt(j_inv[2,2]))
 
@@ -179,20 +163,17 @@ l2 <- negloglik_fn2(thetas2, dat_genbinom$x)
 
 ```
 
-
-
 ### Question 1.2
 
 Use both:
 
-* the asymptotic normality of the maximum likelihood estimators and 
+-   the asymptotic normality of the maximum likelihood estimators and
 
-* the generalised likelihood ratio test  (GLRT)
+-   the generalised likelihood ratio test (GLRT)
 
 to test the following hypotheses:
 
-$$H_0:\,3\lambda^*_1+4\lambda_2^*=60 \qquad \mbox{vs}\qquad H_a:\,3\lambda^*_1+4\lambda_2^*\neq 60$$
-where  
+$$H_0:\,3\lambda^*_1+4\lambda_2^*=60 \qquad \mbox{vs}\qquad H_a:\,3\lambda^*_1+4\lambda_2^*\neq 60$$ where\
 $$
 \begin{pmatrix}
 \lambda_1\\
@@ -205,12 +186,9 @@ E_{\boldsymbol{\theta}}[Y(N-Y)]
 \end{pmatrix}
 $$
 
-
 and $Y$ is random variable following a generalised Binomial with parameters $\boldsymbol{\theta}=(\theta_1,\theta_2)^T$.
 
 In both cases set an approximate significance level of $0.05$.
-
-
 
 ```{r}
 negloglik_fn <- function(theta, data){
@@ -251,6 +229,8 @@ j_inv = solve(opt$hessian)
 CI_theta2 <- c(thetas[2] - z*sqrt(j_inv[2,2]), thetas[2]+z*sqrt(j_inv[2,2]))
 
 findl2func <- function(theta2){
+  N <- 8
+  xx <- 0:N
   phi <- log(sum(choose(N, xx)*exp(xx*thetas[1]+xx*(N-xx)*theta2)))
   lambda1 <- sum(choose(N, xx)*xx*exp(xx*thetas[1]+xx*(N-xx)*theta2-phi))
   lambda2 <- sum(choose(N, xx)*xx*(N-xx)*exp(xx*thetas[1]+xx*(N-xx)*theta2-phi))
@@ -316,30 +296,23 @@ l2 <- negloglik_fn2(thetas2, dat_genbinom$x)
 ## True, so there is evidence to reject the null hypothesis
 ```
 
-
-
-
 ## Question 2: Gamma distribution
 
-
-
-Consider the following independent sample $\boldsymbol{y}=(y_1,\ldots, y_n)^T$ of size $n=20$ from Gamma distribution with unknown  shape parameter $\alpha^*>0$ and  unknown rate parameter $\beta^*>0$
+Consider the following independent sample $\boldsymbol{y}=(y_1,\ldots, y_n)^T$ of size $n=20$ from Gamma distribution with unknown shape parameter $\alpha^*>0$ and unknown rate parameter $\beta^*>0$
 
 ```{r}
 dat_gamma<-read.table(url("https://people.bath.ac.uk/kai21/ASI/data/gamma_sample.txt"),header = T)
 ```
 
-
-The  probability density function of a Gamma distribution with shape $\alpha>0$ and rate $\beta>0$ is given by
-$$f(y|\alpha,\beta)=\frac{\beta^\alpha}{\Gamma(\alpha)}\,y^{\alpha-1}e^{-\beta\,y}\,,\quad\mbox{for }\quad y>0$$
+The probability density function of a Gamma distribution with shape $\alpha>0$ and rate $\beta>0$ is given by $$f(y|\alpha,\beta)=\frac{\beta^\alpha}{\Gamma(\alpha)}\,y^{\alpha-1}e^{-\beta\,y}\,,\quad\mbox{for }\quad y>0$$
 
 ### Question 2.1
 
 Use both:
 
-* the asymptotic normality of the maximum likelihood estimators and 
+-   the asymptotic normality of the maximum likelihood estimators and
 
-* the generalised likelihood ratio test  (GLRT)
+-   the generalised likelihood ratio test (GLRT)
 
 to test the following hypotheses:
 
@@ -439,28 +412,23 @@ critical_value<-qchisq(p=.95,df=1)
 test_statistic>critical_value #this is false, we have insufficient evidence to reject null as before
 ```
 
-
-
 ## Question 3: Log-logistic distribution
 
-
-
-Consider the following independent sample $\boldsymbol{y}=(y_1,\ldots, y_n)^T$ of size $n=50$ from a Log-logistic distribution with unknown  scale parameter $\theta_1^*>0$ and  unknown shape parameter $\theta_2^*>0$
+Consider the following independent sample $\boldsymbol{y}=(y_1,\ldots, y_n)^T$ of size $n=50$ from a Log-logistic distribution with unknown scale parameter $\theta_1^*>0$ and unknown shape parameter $\theta_2^*>0$
 
 ```{r}
 dat_loglogis<-read.table(url("https://people.bath.ac.uk/kai21/ASI/data/loglogistic_sample.txt"),header = T)
 ```
 
-The density of a log-logistic distribution with scale parameter $\theta_1>0$ and shape parameter $\theta_2>0$ is given by:
-$$\displaystyle f(y|\boldsymbol{\theta})=\frac{\frac{\theta_2}{\theta_1}\left(\frac{y}{\theta_1}\right)^{\theta_2-1}}{\left(1+\left(\frac{y}{\theta_1}\right)^{\theta_2}\right)^2}\,,\qquad y>0$$
+The density of a log-logistic distribution with scale parameter $\theta_1>0$ and shape parameter $\theta_2>0$ is given by: $$\displaystyle f(y|\boldsymbol{\theta})=\frac{\frac{\theta_2}{\theta_1}\left(\frac{y}{\theta_1}\right)^{\theta_2-1}}{\left(1+\left(\frac{y}{\theta_1}\right)^{\theta_2}\right)^2}\,,\qquad y>0$$
 
 ### Question 3.1
 
 Use both:
 
-* the asymptotic normality of the maximum likelihood estimators and 
+-   the asymptotic normality of the maximum likelihood estimators and
 
-* the generalised likelihood ratio test  (GLRT)
+-   the generalised likelihood ratio test (GLRT)
 
 to test the following hypotheses:
 
@@ -468,3 +436,102 @@ $$H_0:\,\theta_1^*\theta_2^*=1 \qquad \mbox{vs}\qquad H_a:\theta_1^*\theta_2^*\n
 
 In both cases set an approximate significance level of $0.05$.
 
+```{r}
+dat_loglogis<-read.table(url("https://people.bath.ac.uk/kai21/ASI/data/loglogistic_sample.txt"),header = T)
+
+#### Reparametrisation and optimisation ####
+
+expr.loglogis <- expression(-lambda2 + lambda1 - (exp(lambda2)-1)*(log(x)-lambda1)
+                            +2*log(1 + (x/exp(lambda1))^(exp(lambda2))))
+
+deriv.loglogis <- deriv(expr.loglogis,
+                        namevec = c("lambda1","lambda2"),
+                        function.arg = c("lambda1","lambda2","x"),
+                        hessian = FALSE)
+
+
+#Consider parametrisation given by lambda=(log(theta1),log(theta2))
+#This takes onto the unconstrained real domain, where we can use optim()
+nll.loglogis<-function(lambda,x){
+  nll <- sum(-lambda[2] + lambda[1] - (exp(lambda[2])-1)*(log(x)-lambda[1])+
+          2*log(1 + (x/exp(lambda[1]))^(exp(lambda[2]))))
+  return(nll)
+}
+
+gr.loglogis <- function(lambda,x){
+  res <- deriv.loglogis(lambda[1],lambda[2],x)
+  apply(attr(res,"gradient"),2,sum)
+}
+
+
+fit.loglogis <- optim(c(0,0),
+                fn= nll.loglogis,
+                gr=gr.loglogis,
+                x=dat_loglogis$x,
+                method="BFGS",
+                hessian = T)
+
+lambda_star <- fit.loglogis$par
+theta_star<-exp(lambda_star)
+
+
+hess_lambda_observed<-fit.loglogis$hessian
+J<-diag(exp(-c(fit.loglogis$par))) 
+
+hess_theta_observed<-t(J)%*%hess_lambda_observed%*%J 
+
+
+inverse_fisher_theta<-solve(hess_theta_observed) 
+
+
+#the H_0 is equivlent to theta1=1/theta2
+MLE <- c(theta_star[1]-theta_star[2]^-1,theta_star[2])
+
+J_2<-matrix(0,nrow=2,ncol=2) 
+J_2<-J_2+diag(c(1,1))
+J_2[1,2]=2*shape_rate_star[2]
+hess_gamma_observed<-t(J_2)%*%hess_theta_observed%*%J_2
+
+inverse_fisher_gamma<-solve(hess_gamma_observed)
+
+lower_bound=MLE[1]-qnorm(0.025,lower.tail = FALSE)*sqrt(inverse_fisher_gamma[1,1])
+upper_bound=MLE[1]+qnorm(0.025,lower.tail = FALSE)*sqrt(inverse_fisher_gamma[1,1])
+confidence_interval<-c(lower_bound,upper_bound)
+confidence_interval
+
+
+
+expr.loglogis_rest <- expression(2*lambda - (exp(-lambda)-1)*(log(x)-lambda)
+                                +2*log(1 + (x/exp(lambda))^(exp(-lambda))))
+
+deriv.loglogis_rest <- deriv(expr.loglogis_rest,
+                        namevec = c("lambda"),
+                        function.arg = c("lambda","x"),
+                        hessian = FALSE)
+
+nll.loglogis_rest<-function(lambda,x){
+  nll <- sum(2*lambda - (exp(-lambda)-1)*(log(x)-lambda)
+            +2*log(1 + (x/exp(lambda))^(exp(-lambda))))
+  return(nll)}
+
+gr.loglogis_rest <- function(lambda,x){
+  res <- deriv.loglogis_rest(lambda,x)
+  apply(attr(res,"gradient"),2,sum)
+}
+
+fit.loglogis_rest  <- optim(0,
+                fn= nll.loglogis_rest,
+                gr=gr.loglogis_rest,
+                x=dat_loglogis$x,
+                method="BFGS",
+                hessian = T)
+
+theta_rest_star = fit.loglogis_rest$par
+
+MLE_likelihood_restrained<- -nll_restrained(fit_lambda_1$par,dat_gamma)
+
+test_statistic<-2*(MLE_likelihood_unrestrained-MLE_likelihood_restrained)
+
+critical_value<-qchisq(p=.95,df=1)
+test_statistic>critical_value
+```
