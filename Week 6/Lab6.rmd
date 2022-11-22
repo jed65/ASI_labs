@@ -1,0 +1,251 @@
+---
+title: 'MA40198: Lab sheet 6'
+author: "Karim Anaya-Izquierdo"
+output:
+  html_document:
+    number_sections: no
+    toc: yes
+    toc_float: yes
+    code_download: yes
+always_allow_html: true
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, highlight = TRUE)
+library(tidyverse)
+```
+
+
+## Instructions
+
+* This  assignment should be done in groups  according to the coursework group allocation.
+
+ * As indicated in each question, you should complete the answers by filling-out  the 'Lab6.Rmd' file.  You can remove the instructions and introductory sections if you wish.
+ 
+ 
+* The  'Lab6.Rmd' file  can be downloaded by clicking in the **Code download** button at the top right of this page. If the button does not work you can download the 'Lab4.Rmd' file from the Moodle page. You should open this file in RStudio.
+ 
+
+*  After  completing the answers, each group should convert the 'Lab6.Rmd' file  into an HTML file  by following the instructions in the <a href="#knit-to-html">Knit to html</a> section at the end of this file!
+
+
+* Each group should submit two files:  the completed 'Lab6.Rmd' file  and the created HTML file (which should be named 'Lab6.html') to the  <a href="https://moodle.bath.ac.uk/mod/assign/view.php?id=1175047">submission point in Moodle</a>
+
+
+
+* This is lab is a **formative assessment** and  you will receive feedback to your submitted work on an informal basis.
+
+
+
+## Breaking strength of fibres {#fibre-strength-data}
+
+A tensile strength experiment on single carbon fibres produced the following data which gives the stress values (in giga-pascals) at which each single $n=257$ carbon fibres failed.  Fibres were of four different lengths: 1 mm, 10 mm, 20 mm and 50 mm. The data is displayed in the folowing table.
+
+
+
+```{r,echo=FALSE}
+fibres<-
+  read.table(url("http://people.bath.ac.uk/kai21/ASI/data/strength.txt"),header = TRUE)
+DT::datatable(
+fibres,
+  fillContainer = FALSE, options = list(pageLength = 20)
+)
+```
+
+The  fibre strength  data can be read as follows:
+
+```{r}
+strength.data<-
+  read.table(url("http://people.bath.ac.uk/kai21/ASI/data/strength.txt"),header = TRUE)
+
+```
+
+
+Mechanical Engineers are interested  in establising a relationship between length of fibres and  the corresponding breaking tensile stress. The so-called **weakest link hypothesis** establishes the notion that a fibre consists of independent links, whose weakest member determines the breaking of the fibre. 
+
+The idea behind this is that if $Y_1,Y_2$ are independent and identically distributed  random variables with common survival function $S(y)$  then the survival function of the minimum $Y=\min(Y_1,Y_2)$ is given by
+$$P(Y>y)=P(\min(Y_1,Y_2)>y)=P(Y_1>y,Y_2>y)=P(Y_1>y)P(Y_2>y)=[S(y)]^2$$
+Now let $S_L(y)$ be the probability that a fibre of length $L$ fails under a tensile stress larger than $y$. The weakest link hypothesis can be expressed as follows:
+\begin{equation}
+S_{\scriptsize L_1+L_2}(y)=S_{\scriptsize L_1}(y)S_{\scriptsize L_2}(y)
+\end{equation}
+
+
+### Strength distribution modelling
+
+One family of distributions that satisfies the weakest link hypothesis  is the Weibull family with shape parameter $\eta>0$ and scale parameter $\tau\,L^{-1/\eta}$
+where $\tau>0$. So in this case, the distribution of the breaking tensile stress depends on the length $L$ of the fibre through the scale parameter. The corresponding survival function for a fibre of length $L$ is given by
+
+$$S_L(y|\tau,\eta)=\exp\left(-\left(\frac{y}{\tau\,L^{-1/\eta}}\right)^{\eta}\right)=\exp\left(-L\,\left(\frac{y}{\tau}\right)^{\eta}\right)\,,\quad y>0$$
+ We will denote this model by $\mathcal F_0$. This model has $p=2$ unknown parameters.
+ 
+
+
+
+
+
+Consider now the extended model which is a generalised Weibull distribution  with shape parameters $\eta>0$ and $\kappa>0$ and scale parameter $\tau\,L^{-1/\eta}$
+where $\tau>0$. The corresponding survival function for a fibre of length $L$ is given by
+
+$$S_L(y|\tau,\eta,\kappa)=\exp\left[-\frac{1}{\kappa}\left\{\left(1+\left(\frac{y}{\tau\,L^{-1/\eta}}\right)^\eta\right)^\kappa -1\right\}\right]=\exp\left[-\frac{1}{\kappa}\left\{\left(1+L\left(\frac{y}{\tau}\right)^\eta\right)^\kappa -1\right\}\right]\,,\quad y>0$$
+Note this model only satisfy the weakest link hypothesis when $\kappa=1$.   We will denote this  model by $\mathcal F_1$. 
+This model has $p=3$ unknown parameters 
+
+
+The final model we will consider is the one in which the breaking tensile stress distribution for each length is unrelated to each other and follows a generalised Weibull distribution. The corresponding survival function for a fibre of length $L$ is given by
+
+$$S_L(y|\tau_{\scriptsize L},\eta,\kappa)=\exp\left[-\frac{1}{\kappa}\left\{\left(1+\left(\frac{y}{\tau_{\scriptsize L}}\right)^{\eta}\right)^{\kappa} -1\right\}\right]\,,\quad y>0$$
+
+Clearly, this model satisfies the weakest link hypothesis only when $\kappa=1$ and  $\tau_{\scriptsize L}=\tau\,L^{-1/\eta}$ for some unknown $\tau>0$. We will denote this  model by $\mathcal F_2$. This model has $p=6$ unknown parameters since $\tau_{\scriptsize 1}$, $\tau_{\scriptsize 10}$, $\tau_{\scriptsize 20}$ and $\tau_{\scriptsize 50}$ are all unknown. 
+
+
+
+
+
+
+
+
+
+## Question 1 
+
+Assuming that the breaking stress  corresponds to an independent sample from an unknown member of $\mathcal F_i$ for $i=0,1,2$. In each case,  estimate the  unknown generating parameters by maximum likelihood. To perform the optimisation,  you should use the following reparametrisations:
+
+$$
+\boldsymbol{\theta}=
+\left(
+\begin{array}{c}
+\theta_1\\
+\theta_2
+\end{array}
+\right)
+=
+\left(
+\begin{array}{c}
+\log \eta\\
+\log \tau
+\end{array}
+\right) \qquad \mbox{for } \mathcal F_0
+$$
+
+$$
+\boldsymbol{\theta}=
+\left(
+\begin{array}{c}
+\theta_1\\
+\theta_2 \\
+\theta_3
+\end{array}
+\right)
+=
+\left(
+\begin{array}{c}
+\log \eta\\
+\log \tau \\
+\log \kappa
+\end{array}
+\right)  \qquad \mbox{for } \mathcal F_1
+$$
+
+
+$$
+\boldsymbol{\theta}=
+\left(
+\begin{array}{c}
+\theta_1\\
+\theta_2 \\
+\theta_3\\
+\theta_4 \\
+\theta_5\\
+\theta_6 
+\end{array}
+\right)
+=
+\left(
+\begin{array}{c}
+\log \eta\\
+\log \tau_{\scriptsize 1}\\
+\log \tau_{\scriptsize 10}\\
+\log \tau_{\scriptsize 20}\\
+\log \tau_{\scriptsize 50}\\
+\log \kappa
+\end{array}
+\right)  \qquad \mbox{for } \mathcal F_2
+$$
+
+
+## Question 2 
+
+Consider now the model $\mathcal F_3$ a Weibull family with shape parameter $\eta_{\scriptsize L}=\eta\,L^\nu$ and scale parameter $\tau\,L^{-1/\eta_{\scriptsize L}}$ so that both shape and scale depend on the length of the fibres and $\nu\in R$. The survival is given by
+$$S_L(y|\eta,\tau,\nu)=\exp\left(-\left(\frac{y}{\tau\,L^{-1/\eta_{\scriptsize L}}}\right)^{\eta_{\scriptsize L}}\right)=\exp\left(-L\,\left(\frac{y}{\tau}\right)^{\eta\,L^\kappa}\right)\,,\quad y>0$$
+This model has $p=3$ unknown parameters. 
+
+ 
+Finally, consider the saturated model $\mathcal F_4$ of $p=12$ unknown parameters where the distribution of the breaking stress is generalised Weibull with different parameters $\eta$, $\tau$ and $\kappa$ for each length.
+
+Obtain the corresponding MLE's for $\mathcal F_3$ and $\mathcal F_4$. For the optimisation use
+
+
+$$
+\boldsymbol{\theta}=
+\left(
+\begin{array}{c}
+\theta_1\\
+\theta_2 \\
+\theta_3
+\end{array}
+\right)
+=
+\left(
+\begin{array}{c}
+\log \eta\\
+\log \tau \\
+\nu
+\end{array}
+\right)  \qquad \mbox{for } \mathcal F_3
+$$
+and use the logarithm of all parameters for $\mathcal F_4$.
+
+
+
+## Question 3 
+
+Using $\mathcal F_i$, for $i=0,1,2,3,4$ compute the standardised residuals using $s(\boldsymbol{y})=\boldsymbol{y}$ and then plot them against  $E_{\boldsymbol{\theta}}(s(\boldsymbol{Y}))$.
+In the light of the observed data $\boldsymbol{y}$, what can you say about model $\mathcal F_i$ in each case? 
+You can use the fact that if $Y\sim Weibull(\eta,\tau)$ then
+$$\mbox{E}[Y]=\tau\,\Gamma(1+1/\eta)\,,\qquad \mbox{V}(Y)=\tau^2\left[\Gamma(1+2/\eta)-(\Gamma(1+1/\eta))^2\right]$$
+where $\eta$ is the shape parameter and $\tau$ is the scale parameter. For the generalised Weibull you should use the function `integrate` to integrate numerically to obtain the 
+corresponding means and variances.
+
+
+## Question 4
+
+Consider a different type of residuals
+  based on the empirical  survival function:
+$$s(\boldsymbol{y})=\widehat{S}(t)=\frac{1}{n}\sum_{i=1}^n I(y_i>t)
+$$
+
+for each fibre length group. This is clearly an unbiased estimator of the unknown survival function $S_*(t)=P_*(Y>t)$, that is $E[\widehat{S}(t)]=S_*(t)$. We will define the residuals based on the vector
+
+$$\boldsymbol{s}=(\widehat{S}(y_{(1)}),\widehat{S}(y_{(2)}),\ldots,\widehat{S}(y_{(n)}))^T$$
+so that the mean under a model with parameters $\boldsymbol{\theta}$ is given by
+$$\mu_{\boldsymbol{\theta}}=(S(y_{(1)}|\boldsymbol{\theta}),S((y_{(2)}|\boldsymbol{\theta}),\ldots,S((y_{(n)}|\boldsymbol{\theta}))^T$$
+As a function of $t$ the estimator $\widehat{S}(t)$ is a decreasing  step function which jumps down sequentially at the (increasingly) ordered observation values $y_{(1)}\leq y_{(2)}\leq \cdots\leq y_{(n)}$.
+
+The covariance function is given by
+
+$$Cov(\widehat{S}(t),\widehat{S}(r))=\frac{S(\max(t,r))-S(t)S(r)}{n}$$
+and this defines a matrix which we call $\boldsymbol{\Sigma}_{\boldsymbol{\theta}}$.
+so we can define the residuals as
+
+$$\hat{\epsilon}(\boldsymbol{y}):=\boldsymbol{\Sigma}^{-1/2}_{\widehat{\boldsymbol{\theta}}}(\boldsymbol{s}-\mu_{\widehat{\boldsymbol{\theta}}})$$
+
+The function `ecdf` in base R does almost exactly what we need here except for the fact that it uses $I(y_i\leq t)$ instead of $I(y_i>t)$. But we can substract from one to do what we need! The output of `ecdf` is actually a function of $t$. 
+
+Plot these residuals  for each group of fibres and for each of the models.
+
+
+
+## Question 5
+
+Plot the values of the attained log-likelihood at the corresponding maximum for all the 5 families. What do you observe? Compute the Akaike information criterion (AIC), Bayesian information criterion (BIC) and Network information criterion (NIC) for each model and   determine which one is the best model according to each criterion. 
