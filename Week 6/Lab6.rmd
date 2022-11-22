@@ -276,6 +276,46 @@ $$
 \right)  \qquad \mbox{for } \mathcal F_3
 $$ and use the logarithm of all parameters for $\mathcal F_4$.
 
+```{r}
+nll_F3 <- function(theta, data){
+  l = data[2]
+  y = data[1]
+  eta = exp(theta[1])
+  tau = exp(theta[2])
+  xi = theta[3]
+  nll = -sum(-l*(y/tau)^(eta*l^xi))
+  return(nll)
+}
+
+nll_F4 <- function(theta, data){
+  l = data[2]
+  y = data[1]
+  eta_1 = exp(theta[1])
+  eta_2 = exp(theta[2])
+  eta_3 = exp(theta[3])
+  eta_4 = exp(theta[4])
+  tau_1 = exp(theta[5])
+  tau_10 = exp(theta[6])
+  tau_20 = exp(theta[7])
+  tau_50 = exp(theta[8])
+  kap_1 = exp(theta[9])
+  kap_10 = exp(theta[10])
+  kap_20 = exp(theta[11])
+  kap_50 = exp(theta[12])
+  nll_1 = nll_F1(c(theta[1],theta[5],theta[9]), data %>% filter(length==1))
+  nll_10 = nll_F1(c(theta[2],theta[6],theta[10]), data %>% filter(length==10))
+  nll_20 = nll_F1(c(theta[3],theta[7],theta[11]), data %>% filter(length==20))
+  nll_50 = nll_F1(c(theta[4],theta[8],theta[12]), data %>% filter(length==50))
+  nll = nll_1 + nll_10 + nll_20 + nll_50
+  return(nll)
+}
+
+fit_F3 <- optim(c(0,0,0), nll_F3, method = 'BFGS', data = strength.data)
+fit_F4 <- optim(c(1,1,1,1,1,1,1,1,1,1,1,1), nll_F4, method = 'BFGS', data = strength.data)
+fit_F3$par
+fit_F4$par
+```
+
 ## Question 3
 
 Using $\mathcal F_i$, for $i=0,1,2,3,4$ compute the standardised
