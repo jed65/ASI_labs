@@ -286,7 +286,7 @@ nll_F3 <- function(theta, data){
   eta = exp(theta[1])
   tau = exp(theta[2])
   xi = theta[3]
-  nll = -sum(-l*(y/tau)^(eta*l^xi))
+  nll = -sum(log((eta*l^(xi+1)*y^(eta*l^xi-1)/(tau^(eta*l^xi))) * exp(-l*(y/tau)^(eta*(l^xi)))))
   return(nll)
 }
 
@@ -314,7 +314,7 @@ nll_F4 <- function(theta, data){
 }
 
 fit_F3 <- optim(c(0,0,0), nll_F3, method = 'BFGS', data = strength.data)
-fit_F4 <- optim(c(1,1,1,1,1,1,1,1,1,1,1,1), nll_F4, method = 'BFGS', data = strength.data)
+fit_F4 <- optim(c(0,0,0,0,0,0,0,0,0,0,0,0), nll_F4, method = 'BFGS', data = strength.data)
 fit_F3$par
 fit_F4$par
 ```
